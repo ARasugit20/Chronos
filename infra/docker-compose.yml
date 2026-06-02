@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: invest_agent
+      POSTGRES_USER: invest
+      POSTGRES_PASSWORD: invest_local
+    ports: ["5432:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U invest"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+
+  backend:
+    build: ../backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports: ["8000:8000"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://invest:invest_local@postgres:5432/invest_agent
+      REDIS_URL: redis://redis:6379/0
+      PORTFOLIO_CASH: "10000.00"
+      PORTFOLIO_VALUE: "50000.00"
+      CONFIDENCE_THRESHOLD: "0.50"
+      MODEL_PATH: ""
+      TELEGRAM_BOT_TOKEN: ""
+      TELEGRAM_CHAT_ID: ""
+      PRICE_SOURCE: "mock"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    volumes: [../backend:/app]
+
+  worker:
+    build: ../backend
+    command: celery -A app.workers.celery_app worker --beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://invest:invest_local@postgres:5432/invest_agent
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - backend
+
+  frontend:
+    build: ../frontend
+    ports: ["3000:3000"]
+    environment:
+      VITE_API_URL: http://localhost:8000
+    volumes: [../frontend:/app, /app/node_modules]
+    depends_on: [backend]
+
+volumes:
+  postgres_data:

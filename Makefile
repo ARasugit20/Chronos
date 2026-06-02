@@ -1,0 +1,28 @@
+.PHONY: up down migrate seed test lint
+
+up:
+	docker compose -f infra/docker-compose.yml up --build -d
+
+down:
+	docker compose -f infra/docker-compose.yml down -v
+
+migrate:
+	docker compose -f infra/docker-compose.yml exec backend alembic upgrade head
+
+seed:
+	docker compose -f infra/docker-compose.yml exec backend python -m app.seeds.seed
+
+test-backend:
+	docker compose -f infra/docker-compose.yml exec backend pytest tests/ -v --tb=short
+
+test-frontend:
+	cd frontend && npm run test
+
+lint-backend:
+	cd backend && ruff check . && mypy app/
+
+lint-frontend:
+	cd frontend && npm run lint
+
+logs:
+	docker compose -f infra/docker-compose.yml logs -f backend worker
