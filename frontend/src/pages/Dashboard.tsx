@@ -1,0 +1,18 @@
+import { PipelineViz } from "../components/PipelineViz/PipelineViz";
+import { RecommendationList } from "../components/RecommendationCard/RecommendationCard";
+import { SignalFeed } from "../components/SignalFeed/SignalFeed";
+
+export function Dashboard() {
+  return (
+    <div className="space-y-8">
+      <PipelineViz />
+      <SignalFeed />
+      <section aria-labelledby="rec-heading">
+        <h2 id="rec-heading" className="mb-3 text-xl font-semibold">
+          Pending Recommendations
+        </h2>
+        <RecommendationList />
+      </section>
+    </div>
+  );
+}
