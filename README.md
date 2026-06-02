@@ -1,6 +1,6 @@
 # Chronos (invest-agent)
 
-Quant project: track live news and stock trends to surface timely buy/skip research signals for stocks and ETFs.
+Quant project: invest agent tracks live news and stock trends to give realtime advice on what stock or ETF would be hot right now to buy.
 
 Repository: [https://github.com/ARasugit20/Chronos](https://github.com/ARasugit20/Chronos)
 
