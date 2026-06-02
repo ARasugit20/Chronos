@@ -1,0 +1,37 @@
+[
+  {
+    "event_pattern": "world cup|fifa|soccer championship",
+    "tickers": ["NKE", "ADDYY", "MAR", "UAL", "KO"],
+    "rationale": "Global soccer tournament drives sponsor brand exposure, travel demand, and beverage consumption",
+    "confidence_prior": 0.62,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "nba finals|basketball championship",
+    "tickers": ["DIS", "CMCSA", "NKE", "NFLX"],
+    "rationale": "NBA Finals drives ABC/ESPN broadcast ratings (DIS), Peacock streaming (CMCSA), Jordan Brand sales (NKE)",
+    "confidence_prior": 0.58,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "federal reserve|fed rate|fomc|interest rate decision",
+    "tickers": ["QQQ", "TLT", "GLD", "SPY"],
+    "rationale": "Fed decisions shift risk appetite; tech (QQQ) and bonds (TLT) are most sensitive",
+    "confidence_prior": 0.51,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "super bowl|nfl championship",
+    "tickers": ["FOX", "CMCSA", "DIS", "PEP", "BUD"],
+    "rationale": "Broadcast rights, ad spend, and snack/beverage consumption spike",
+    "confidence_prior": 0.55,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "olympics|olympic games",
+    "tickers": ["NKE", "ADDYY", "CMCSA", "UAL", "MAR"],
+    "rationale": "Sponsor exposure, travel demand, and broadcast rights",
+    "confidence_prior": 0.53,
+    "approved_by_human": true
+  }
+]
