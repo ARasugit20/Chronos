@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api/v1/recommendations", tags=["recommendations"])
 async def list_recommendations(
     status_filter: str = Query(default="pending", alias="status"),
     limit: int = Query(default=10, ge=1, le=100),
+    offset: int = Query(default=0, ge=0, le=10_000),
     db: AsyncSession = Depends(get_db_session),
 ) -> list[RecommendationSchema]:
     stmt = (
@@ -24,6 +25,7 @@ async def list_recommendations(
         .options(selectinload(Recommendation.signal))
         .where(Recommendation.status == status_filter)
         .order_by(Recommendation.created_at.desc())
+        .offset(offset)
         .limit(limit)
     )
     rows = (await db.execute(stmt)).scalars().all()

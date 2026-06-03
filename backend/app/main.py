@@ -10,6 +10,7 @@ from app.api import audit, events, recommendations, signals
 from app.config import get_settings
 from app.database import engine
 from app.logging_config import configure_logging
+from app.middleware import RequestContextMiddleware
 from app.redis_client import get_redis
 
 configure_logging()
@@ -27,8 +28,14 @@ async def lifespan(_: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title=settings.app_name, lifespan=lifespan)
+    app = FastAPI(
+        title=settings.app_name,
+        lifespan=lifespan,
+        description="Event-driven quant research pipeline: ingest → score → recommend → resolve outcomes.",
+        version="0.1.0",
+    )
 
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

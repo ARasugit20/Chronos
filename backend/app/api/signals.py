@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/v1/signals", tags=["signals"])
 async def live_signals(
     suppressed: bool = Query(default=False),
     limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0, le=10_000),
     db: AsyncSession = Depends(get_db_session),
 ) -> list[SignalSchema]:
     stmt = (
@@ -22,6 +23,7 @@ async def live_signals(
         .options(selectinload(Signal.event))
         .where(Signal.suppressed == suppressed)
         .order_by(Signal.created_at.desc())
+        .offset(offset)
         .limit(limit)
     )
     rows = (await db.execute(stmt)).scalars().all()
