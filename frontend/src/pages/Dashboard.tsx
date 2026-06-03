@@ -1,10 +1,12 @@
 import { PipelineViz } from "../components/PipelineViz/PipelineViz";
 import { RecommendationList } from "../components/RecommendationCard/RecommendationCard";
 import { SignalFeed } from "../components/SignalFeed/SignalFeed";
+import { SystemStatus } from "../components/SystemStatus/SystemStatus";
 
 export function Dashboard() {
   return (
     <div className="space-y-8">
+      <SystemStatus />
       <PipelineViz />
       <SignalFeed />
       <section aria-labelledby="rec-heading">
