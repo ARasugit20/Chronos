@@ -1,32 +1,26 @@
 # Roadmap
 
-## Near term (portfolio / interview demo)
+## Completed
 
-- [x] End-to-end mock pipeline with dashboard
-- [x] GitHub Actions CI
-- [x] DB performance indexes
-- [ ] JWT auth middleware
-- [ ] `.env` secrets via Docker secrets / GitHub Actions vars
+- [x] JWT auth on mutating endpoints
+- [x] LightGBM scorer + feature engineering
+- [x] Fitted isotonic calibration (with fallback)
+- [x] Embedding theme fallback (hash fallback when ST unavailable)
+- [x] Polygon price feed with mock fallback
+- [x] Configurable Kelly odds + sector/drawdown guards
+- [x] Cursor pagination + Redis rate limiting
+- [x] Expanded Prometheus metrics
+- [x] Demo seed (`make seed-demo`)
+- [x] E2E smoke tests
+- [x] Signal quality guardrails
+- [x] Dark/light theme toggle
+- [x] WebSocket signal feed
+- [x] CI coverage + type-check jobs
 
-## Scalability
+## Next
 
-- [ ] Embedding-based theme matching (pgvector or external vector DB)
-- [ ] Partition `events` by month
-- [ ] Celery queue per source type (sports / macro / news)
-- [ ] Read replicas for signal feed API
-- [ ] Rate limiting (Redis token bucket)
-
-## Functionality
-
-- [ ] Polygon / Yahoo price adapters
-- [ ] LightGBM training on `Outcome` table (min 50 samples)
-- [ ] Fitted isotonic calibration per `event_type`
-- [ ] Multi-user Telegram subscriptions
-- [ ] Backtest mode (historical event replay)
-
-## Recruiter-facing polish
-
-- [x] Architecture diagram in README
-- [x] CI badge
+- [ ] Deploy preview (Railway / Render)
 - [ ] Demo GIF in README
-- [ ] Deploy preview (Railway / Render) with health URL in README
+- [ ] pgvector for production embeddings
+- [ ] Horizontal Celery autoscaling
+- [ ] DB user table + OAuth
