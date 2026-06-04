@@ -98,7 +98,7 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned upgrades: JWT auth, embedding
 2. LightGBMScorer is a stub — model trains only after sufficient Outcome records exist (minimum 50 recommended)
 3. Calibration uses fixed 0.85 shrinkage — replace with fitted IsotonicRegression once outcomes accumulate
 4. Theme mapping uses simple regex — upgrade to embedding similarity for better event matching at scale
-5. No authentication on API endpoints — add JWT before any public deployment
+5. Mutating API endpoints require JWT (`POST /api/v1/auth/token`); read endpoints remain public
 6. Telegram adapter sends to single chat_id — multi-user requires subscription model
 7. Kelly sizing assumes simplified b=1.0 odds — replace with actual expected return from event study data
 

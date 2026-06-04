@@ -12,6 +12,9 @@ migrate:
 seed:
 	docker compose -f infra/docker-compose.yml exec backend python -m app.seeds.seed
 
+seed-demo:
+	docker compose -f infra/docker-compose.yml exec backend python -m app.seed_demo
+
 test-backend:
 	docker compose -f infra/docker-compose.yml exec backend pytest tests/ -v --tb=short
 
