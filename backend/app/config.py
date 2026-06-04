@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     admin_username: str = "admin"
     admin_password: str = "changeme"
+    polygon_api_key: str = ""
+    kelly_odds: float = 2.0
+    sector_cap_pct: float = 0.25
+    min_allocation_usd: float = 10.0
+    rate_limit_requests: int = 100
+    rate_limit_window_seconds: int = 60
 
 
 @lru_cache

@@ -1,5 +1,4 @@
 import asyncio
-import random
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -12,6 +11,7 @@ from app.config import get_settings
 from app.database import SessionLocal
 from app.models.outcome import Outcome
 from app.models.recommendation import Recommendation
+from app.prices.price_service import get_price
 
 logger = structlog.get_logger(__name__)
 
@@ -35,14 +35,8 @@ async def resolve_expired() -> int:
             signal = rec.signal
             if signal is None:
                 continue
-            metadata = {}
-            price_at_signal = None
-            if metadata.get("price"):
-                price_at_signal = Decimal(str(metadata["price"]))
-            if price_at_signal is None:
-                price_at_signal = Decimal(str(round(random.uniform(50, 500), 4)))
-
-            price_at_expiry = price_at_signal * Decimal(str(1 + random.gauss(0.02, 0.05)))
+            price_at_signal = await get_price(signal.ticker)
+            price_at_expiry = await get_price(signal.ticker)
             realized_return_pct = float((price_at_expiry - price_at_signal) / price_at_signal)
             hit_boolean = realized_return_pct > 0 and rec.action == "buy"
             brier_component = (signal.probability_calibrated - float(hit_boolean)) ** 2
