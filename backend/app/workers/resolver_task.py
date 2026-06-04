@@ -1,7 +1,5 @@
 import asyncio
 from datetime import datetime, timezone
-from decimal import Decimal
-
 import structlog
 from celery import shared_task
 from sqlalchemy import select

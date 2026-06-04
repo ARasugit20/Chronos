@@ -2,7 +2,7 @@ import asyncio
 
 import structlog
 from celery import shared_task
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.database import SessionLocal
 from app.models.outcome import Outcome

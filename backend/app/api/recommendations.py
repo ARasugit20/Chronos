@@ -8,7 +8,6 @@ from sqlalchemy.orm import selectinload
 from app.auth.dependencies import get_current_user
 from app.database import get_db_session
 from app.models.recommendation import Recommendation
-from app.models.signal import Signal
 from app.metrics import recommendations_actioned_total
 from app.schemas.pagination import CursorPage
 from app.schemas.recommendation import RecommendationSchema

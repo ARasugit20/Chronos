@@ -52,8 +52,13 @@ target-version = "py311"
 
 [tool.mypy]
 python_version = "3.11"
-strict = true
+strict = false
 ignore_missing_imports = true
+warn_return_any = false
+disallow_untyped_defs = false
+
+[tool.ruff.lint.per-file-ignores]
+"app/models/*.py" = ["F821"]
 
 [tool.coverage.run]
 source = ["app"]

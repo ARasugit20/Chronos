@@ -13,6 +13,9 @@ from app.prices.polygon_client import PriceUnavailableError, get_polygon_client
 
 logger = structlog.get_logger(__name__)
 
+from typing import Any
+
+price_fetches_total: Any = None
 try:
     from prometheus_client import Counter
 
