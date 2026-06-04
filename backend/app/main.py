@@ -11,6 +11,8 @@ from app.config import get_settings
 from app.database import engine
 from app.logging_config import configure_logging
 from app.middleware import RequestContextMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
+from app.ws import signal_ws
 from app.redis_client import get_redis
 
 configure_logging()
@@ -35,6 +37,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
     )
 
+    app.add_middleware(RateLimitMiddleware)
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -49,6 +52,7 @@ def create_app() -> FastAPI:
     app.include_router(signals.router)
     app.include_router(recommendations.router)
     app.include_router(audit.router)
+    app.include_router(signal_ws.router)
 
     Instrumentator().instrument(app).expose(app, endpoint="/metrics")
 
