@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
@@ -15,9 +16,13 @@ from app.pipeline.dedup import compute_fingerprint, is_duplicate, mark_fingerpri
 from app.pipeline.scorer import LightGBMScorer, RulesScorer
 from app.pipeline.sectors import ticker_sector
 from app.pipeline.theme_mapper import match_themes
+from app.metrics import events_ingested_total, pipeline_duration_seconds, signals_generated_total
 from app.pipeline import allocator
+from app.pipeline.quality import SignalQualityGuard
+from app.ws.signal_ws import publish_signal
 
 logger = structlog.get_logger(__name__)
+quality_guard = SignalQualityGuard()
 HORIZON_HOURS = 72
 
 
@@ -43,7 +48,9 @@ async def ingest_event(
     fingerprint = compute_fingerprint(source, event_type, title, occurred_date)
 
     if await is_duplicate(fingerprint, redis_client, db):
+        events_ingested_total.labels(source=source, is_duplicate="true").inc()
         return None, fingerprint, True
+    started = time.perf_counter()
 
     event = Event(
         source=source,
@@ -60,6 +67,8 @@ async def ingest_event(
     await process_event_signals(db, event)
     await db.commit()
     await db.refresh(event)
+    events_ingested_total.labels(source=source, is_duplicate="false").inc()
+    pipeline_duration_seconds.observe(time.perf_counter() - started)
     return event, fingerprint, False
 
 
@@ -100,6 +109,11 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             if suppressed:
                 suppression_reason = f"below threshold {settings.confidence_threshold}"
 
+            guard_suppress, guard_reason, _stats = await quality_guard.evaluate(db, ticker)
+            if guard_suppress:
+                suppressed = True
+                suppression_reason = guard_reason
+
             signal = Signal(
                 event_id=event.id,
                 ticker=ticker,
@@ -114,6 +128,15 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             )
             db.add(signal)
             await db.flush()
+            signals_generated_total.labels(ticker=ticker, bucket=signal.confidence_bucket).inc()
+            await publish_signal(
+                {
+                    "id": str(signal.id),
+                    "ticker": signal.ticker,
+                    "probability_calibrated": signal.probability_calibrated,
+                    "suppressed": signal.suppressed,
+                }
+            )
 
             if suppressed:
                 logger.info("pipeline.signal_suppressed", signal_id=str(signal.id), ticker=ticker)

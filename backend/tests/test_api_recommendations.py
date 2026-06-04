@@ -78,6 +78,6 @@ async def test_recommendations_include_disclaimer(client: AsyncClient, db_sessio
     )
     response = await client.get("/api/v1/recommendations")
     assert response.status_code == 200
-    items = response.json()
+    items = response.json()["data"]
     for item in items:
         assert "disclaimer" in item
