@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.dependencies import get_current_user
 from app.database import get_db_session
 from app.redis_client import get_redis
 from app.schemas.event import EventIngestRequest, EventIngestResponse
@@ -14,6 +15,7 @@ async def ingest(
     body: EventIngestRequest,
     response: Response,
     db: AsyncSession = Depends(get_db_session),
+    _user: str = Depends(get_current_user),
 ) -> EventIngestResponse:
     redis_client = get_redis()
     event, fingerprint, duplicate = await ingest_event(

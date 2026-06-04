@@ -7,6 +7,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.theme_mapping import ThemeMapping
 
 
+async def _auth_headers(client: AsyncClient) -> dict[str, str]:
+    from app.config import get_settings
+
+    settings = get_settings()
+    token_resp = await client.post(
+        "/api/v1/auth/token",
+        data={"username": settings.admin_username, "password": settings.admin_password},
+    )
+    token = token_resp.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 @pytest.mark.asyncio
 async def test_ingest_creates_event(client: AsyncClient, db_session: AsyncSession) -> None:
     db_session.add(
@@ -27,13 +39,14 @@ async def test_ingest_creates_event(client: AsyncClient, db_session: AsyncSessio
         "occurred_at": "2026-06-02T00:00:00Z",
         "metadata": {},
     }
-    first = await client.post("/api/v1/events/ingest", json=payload)
+    headers = await _auth_headers(client)
+    first = await client.post("/api/v1/events/ingest", json=payload, headers=headers)
     assert first.status_code == 201
     body = first.json()
     assert body["is_duplicate"] is False
     assert body["id"] is not None
 
-    second = await client.post("/api/v1/events/ingest", json=payload)
+    second = await client.post("/api/v1/events/ingest", json=payload, headers=headers)
     assert second.status_code == 200
     assert second.json()["is_duplicate"] is True
 
@@ -51,8 +64,10 @@ async def test_recommendations_include_disclaimer(client: AsyncClient, db_sessio
     )
     await db_session.commit()
 
+    headers = await _auth_headers(client)
     await client.post(
         "/api/v1/events/ingest",
+        headers=headers,
         json={
             "source": "manual",
             "event_type": "sports",

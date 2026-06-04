@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import text
 
-from app.api import audit, events, recommendations, signals
+from app.api import audit, auth, events, recommendations, signals
 from app.config import get_settings
 from app.database import engine
 from app.logging_config import configure_logging
@@ -44,6 +44,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    app.include_router(auth.router)
     app.include_router(events.router)
     app.include_router(signals.router)
     app.include_router(recommendations.router)

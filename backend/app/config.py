@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
     price_source: str = "mock"
     cors_origins: list[str] = ["http://localhost:3000"]
+    secret_key: str = "changeme"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+    admin_username: str = "admin"
+    admin_password: str = "changeme"
 
 
 @lru_cache

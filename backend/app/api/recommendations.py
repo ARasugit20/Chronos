@@ -5,6 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.auth.dependencies import get_current_user
 from app.database import get_db_session
 from app.models.recommendation import Recommendation
 from app.models.signal import Signal
@@ -51,6 +52,7 @@ async def list_recommendations(
 async def approve_recommendation(
     recommendation_id: UUID,
     db: AsyncSession = Depends(get_db_session),
+    _user: str = Depends(get_current_user),
 ) -> RecommendationSchema:
     rec = await _get_recommendation(db, recommendation_id)
     rec.status = "approved"
@@ -63,6 +65,7 @@ async def approve_recommendation(
 async def skip_recommendation(
     recommendation_id: UUID,
     db: AsyncSession = Depends(get_db_session),
+    _user: str = Depends(get_current_user),
 ) -> RecommendationSchema:
     rec = await _get_recommendation(db, recommendation_id)
     rec.status = "skipped"
