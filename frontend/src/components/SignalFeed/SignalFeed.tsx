@@ -1,4 +1,5 @@
 import { useSignals } from "../../hooks/useSignals";
+import { useSignalWebSocket } from "../../hooks/useSignalWebSocket";
 import { StatusDot } from "../ui/StatusDot";
 import { SignalRow } from "./SignalRow";
 
@@ -13,8 +14,15 @@ function SkeletonRows() {
 }
 
 export function SignalFeed() {
+  const { connectionStatus } = useSignalWebSocket();
   const { data, isLoading, isError, error, refetch, isFetching, dataUpdatedAt } = useSignals(false);
   const stale = Date.now() - dataUpdatedAt > 5 * 60_000 && !isFetching;
+  const connColor =
+    connectionStatus === "connected"
+      ? "bg-emerald-500"
+      : connectionStatus === "reconnecting"
+        ? "bg-amber-400"
+        : "bg-red-500";
 
   if (isLoading) return <SkeletonRows />;
   if (isError) {
@@ -42,6 +50,7 @@ export function SignalFeed() {
         <h2 id="signal-feed-heading" className="text-xl font-semibold">
           Live Signals
         </h2>
+        <span className={`inline-block h-2.5 w-2.5 rounded-full ${connColor}`} title={connectionStatus} />
         <StatusDot stale={stale} />
       </div>
       <div className="space-y-3">

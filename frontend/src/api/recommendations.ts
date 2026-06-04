@@ -1,11 +1,17 @@
 import { apiClient } from "./client";
 import type { AuditTrail, Recommendation } from "../types/domain";
 
+interface CursorPage<T> {
+  data: T[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
 export async function fetchRecommendations(status = "pending", limit = 10): Promise<Recommendation[]> {
-  const { data } = await apiClient.get<Recommendation[]>("/api/v1/recommendations", {
+  const { data } = await apiClient.get<CursorPage<Recommendation>>("/api/v1/recommendations", {
     params: { status, limit },
   });
-  return data;
+  return data.data;
 }
 
 export async function approveRecommendation(id: string): Promise<Recommendation> {

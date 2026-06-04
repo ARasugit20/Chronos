@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchLiveSignals } from "../api/signals";
 
-const POLL_MS = 60_000;
+const POLL_MS = 120_000;
 const STALE_MS = 5 * 60_000;
 
 export function useSignals(suppressed = false) {
