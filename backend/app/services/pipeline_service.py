@@ -110,6 +110,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 confidence_bucket=confidence_bucket(calibrated),
                 suppressed=suppressed,
                 suppression_reason=suppression_reason,
+                match_method=match.match_method,
             )
             db.add(signal)
             await db.flush()
@@ -118,7 +119,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 logger.info("pipeline.signal_suppressed", signal_id=str(signal.id), ticker=ticker)
                 continue
 
-            amount_usd, pct_cash = allocator.compute_allocation(
+            allocation = allocator.compute_allocation(
                 calibrated,
                 settings.portfolio_cash,
                 existing_positions,
@@ -126,6 +127,8 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 ticker,
                 ticker_sector(ticker),
             )
+            amount_usd = allocation.amount_usd
+            pct_cash = allocation.pct_cash
             action = "buy" if amount_usd > 0 else "skip"
             expires_at = datetime.now(timezone.utc) + timedelta(hours=HORIZON_HOURS)
             reason = (

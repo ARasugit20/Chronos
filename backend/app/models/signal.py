@@ -25,6 +25,7 @@ class Signal(Base):
     confidence_bucket: Mapped[str] = mapped_column(String, nullable=False)
     suppressed: Mapped[bool] = mapped_column(default=False, nullable=False)
     suppression_reason: Mapped[str | None] = mapped_column(String, nullable=True)
+    match_method: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)
 
     event: Mapped["Event"] = relationship(back_populates="signals")
