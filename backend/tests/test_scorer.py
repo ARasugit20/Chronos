@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping
-from app.pipeline.scorer import RulesScorer
+from app.pipeline.features import extract_features
+from app.pipeline.scorer import LightGBMScorer, RulesScorer
 from app.services.pipeline_service import process_event_signals
 
 
@@ -63,3 +64,45 @@ async def test_suppressed_signal_no_recommendation(db_session: AsyncSession) -> 
     assert len(event.signals) == 1
     assert event.signals[0].suppressed is True
     assert event.signals[0].recommendation is None
+
+
+def test_feature_extraction_keys() -> None:
+    theme = ThemeMapping(
+        event_pattern="fed|fomc",
+        tickers=["QQQ"],
+        rationale="macro",
+        confidence_prior=0.5,
+        approved_by_human=True,
+    )
+    event = Event(
+        source="macro_mock",
+        event_type="macro",
+        title="Federal Reserve holds rates",
+        occurred_at=datetime.now(timezone.utc),
+        metadata_json={},
+        fingerprint_hash="feat",
+    )
+    features = extract_features(event, theme)
+    assert "hour_of_day" in features
+    assert "source_trust" in features
+
+
+def test_lightgbm_fallback_without_model() -> None:
+    theme = ThemeMapping(
+        event_pattern="nba",
+        tickers=["DIS"],
+        rationale="sports",
+        confidence_prior=0.58,
+        approved_by_human=True,
+    )
+    event = Event(
+        source="sports_mock",
+        event_type="sports",
+        title="NBA Finals Game 7",
+        occurred_at=datetime.now(timezone.utc),
+        metadata_json={},
+        fingerprint_hash="lgbm",
+    )
+    scorer = LightGBMScorer(model_path="/tmp/no_such_lgbm_model.pkl")
+    score = scorer.score(event, theme)
+    assert 0.0 <= score <= 1.0
