@@ -4,7 +4,7 @@ import structlog
 from celery import shared_task
 
 from app.adapters.macro_source import MacroMockSource
-from app.adapters.news_source import NewsMockSource
+from app.adapters.news_source import get_news_source
 from app.adapters.sports_source import EventSource, SportsMockSource
 from app.database import SessionLocal
 from app.redis_client import get_redis
@@ -14,7 +14,7 @@ logger = structlog.get_logger(__name__)
 
 
 async def _run_all_sources() -> int:
-    sources: list[EventSource] = [SportsMockSource(), MacroMockSource(), NewsMockSource()]
+    sources: list[EventSource] = [SportsMockSource(), MacroMockSource(), get_news_source()]
     processed = 0
     redis_client = get_redis()
     async with SessionLocal() as db:

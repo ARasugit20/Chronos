@@ -11,7 +11,7 @@ from app.models.theme_mapping import ThemeMapping
 from app.pipeline.features import extract_features, features_to_vector
 
 logger = structlog.get_logger(__name__)
-HIGH_TRUST_SOURCES = {"sports_mock", "macro_mock", "manual"}
+HIGH_TRUST_SOURCES = {"sports_mock", "macro_mock", "manual", "finnhub"}
 DEFAULT_MODEL_PATH = Path("models/lgbm_scorer.pkl")
 
 

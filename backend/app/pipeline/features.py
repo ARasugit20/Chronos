@@ -11,6 +11,7 @@ SOURCE_TRUST: dict[str, float] = {
     "sports_mock": 0.7,
     "macro_mock": 0.9,
     "news_mock": 0.6,
+    "finnhub": 0.8,
     "manual": 0.85,
 }
 
