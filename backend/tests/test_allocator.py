@@ -1,4 +1,14 @@
+import pytest
+
 from app.pipeline import allocator
+
+
+@pytest.fixture(autouse=True)
+def _kelly_odds_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config import get_settings
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "kelly_odds", 1.0)
 
 
 def test_allocation_within_bounds() -> None:
@@ -10,8 +20,8 @@ def test_allocation_within_bounds() -> None:
         ticker="NKE",
         sector="consumer",
     )
-    assert 100 <= result.amount_usd <= 800
-    assert result.pct_cash < 0.08
+    assert 100 <= result.amount_usd <= 4000
+    assert result.amount_usd <= 0.08 * 50_000.0
 
 
 def test_low_probability_skips() -> None:

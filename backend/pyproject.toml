@@ -12,6 +12,7 @@ dependencies = [
     "uvicorn[standard]>=0.30.0",
     "sqlalchemy>=2.0.31",
     "asyncpg>=0.29.0",
+    "greenlet>=3.0.0",
     "psycopg2-binary>=2.9.9",
     "alembic>=1.13.1",
     "pydantic>=2.8.2",
@@ -56,6 +57,15 @@ strict = false
 ignore_missing_imports = true
 warn_return_any = false
 disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "app.models.event",
+    "app.models.signal",
+    "app.models.recommendation",
+    "app.models.outcome",
+]
+disable_error_code = ["name-defined"]
 
 [tool.ruff.lint.per-file-ignores]
 "app/models/*.py" = ["F821"]

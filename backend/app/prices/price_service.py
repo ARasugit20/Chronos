@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 import structlog
 
@@ -12,8 +13,6 @@ from app.config import get_settings
 from app.prices.polygon_client import PriceUnavailableError, get_polygon_client
 
 logger = structlog.get_logger(__name__)
-
-from typing import Any
 
 price_fetches_total: Any = None
 try:
