@@ -8,6 +8,7 @@ import structlog
 from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping
 from app.pipeline.embedder import cosine_similarity, embed
+from app.pipeline.entity_extractor import extract_all_tickers
 
 logger = structlog.get_logger(__name__)
 THEME_MAPPINGS_PATH = Path(__file__).resolve().parent.parent / "seeds" / "theme_mappings.json"
@@ -68,4 +69,22 @@ def match_themes(event: Event, mappings: list[ThemeMapping]) -> list[ThemeMatch]
             method=method,
             confidence=round(confidence, 3),
         )
+    entity_tickers = extract_all_tickers(event.title, event.metadata_json or {})
+    if entity_tickers:
+        synthetic = ThemeMapping(
+            event_pattern="entity_extracted",
+            tickers=entity_tickers,
+            rationale="Tickers extracted from news metadata and article text",
+            confidence_prior=0.55,
+            approved_by_human=True,
+        )
+        results.append(
+            ThemeMatch(
+                mapping=synthetic,
+                tickers=entity_tickers,
+                match_method="entity",
+                confidence=0.55,
+            )
+        )
+        logger.info("theme.entity_match", tickers=entity_tickers)
     return results

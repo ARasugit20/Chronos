@@ -33,5 +33,47 @@
     "rationale": "Sponsor exposure, travel demand, and broadcast rights",
     "confidence_prior": 0.53,
     "approved_by_human": true
+  },
+  {
+    "event_pattern": "marvel|disney film|box office record|avengers",
+    "tickers": ["DIS", "CMCSA", "NFLX", "IMAX"],
+    "rationale": "Blockbuster film openings drive Disney box office revenue and streaming demand",
+    "confidence_prior": 0.57,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "steel tariff|tariff discussion|trade war|import duty",
+    "tickers": ["X", "NUE", "STLD", "CLF", "MT"],
+    "rationale": "Steel tariffs and trade policy directly impact domestic steel producers",
+    "confidence_prior": 0.56,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "ai chip|export control|semiconductor restriction|nvidia ban",
+    "tickers": ["NVDA", "AMD", "INTC", "AVGO", "SMCI"],
+    "rationale": "AI chip export controls affect semiconductor supply chains and GPU demand",
+    "confidence_prior": 0.58,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "cpi print|inflation data|consumer price index",
+    "tickers": ["SPY", "TLT", "GLD", "XLE"],
+    "rationale": "Inflation prints shift rate expectations and sector rotation",
+    "confidence_prior": 0.52,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "earnings beat|earnings miss|quarterly results|revenue guidance",
+    "tickers": ["SPY", "QQQ"],
+    "rationale": "Earnings surprises drive broad market sentiment and sector moves",
+    "confidence_prior": 0.54,
+    "approved_by_human": true
+  },
+  {
+    "event_pattern": "oil price|crude oil|opec|energy supply",
+    "tickers": ["XLE", "CVX", "XOM", "OXY"],
+    "rationale": "Oil supply shocks impact energy majors and inflation expectations",
+    "confidence_prior": 0.55,
+    "approved_by_human": true
   }
 ]
