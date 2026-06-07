@@ -1,12 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { LoginForm } from "./components/LoginForm/LoginForm";
 import { ThemeToggle } from "./components/ThemeToggle/ThemeToggle";
+import { useAuth } from "./hooks/useAuth";
 import { Dashboard } from "./pages/Dashboard";
 import { AuditTrail } from "./pages/AuditTrail";
 
 const queryClient = new QueryClient();
 
 function App() {
+  const { isAuthenticated, logout } = useAuth();
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -24,6 +27,17 @@ function App() {
               </Link>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-500 dark:text-slate-400">invest-agent</span>
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="rounded border px-2 py-1 text-xs dark:border-slate-600"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <LoginForm />
+                )}
                 <ThemeToggle />
               </div>
             </nav>

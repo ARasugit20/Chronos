@@ -6,7 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import text
 
-from app.api import audit, auth, events, recommendations, signals
+from app.api import audit, auth, backtest, events, recommendations, signals
+from app.database import SessionLocal
+from app.metrics import (
+    ingest_stale_gauge,
+    mock_news_mode_gauge,
+    mock_price_mode_gauge,
+    worker_heartbeat_gauge,
+)
+from app.services.monitoring import check_system_health
 from app.config import get_settings
 from app.database import engine
 from app.logging_config import configure_logging
@@ -52,6 +60,7 @@ def create_app() -> FastAPI:
     app.include_router(signals.router)
     app.include_router(recommendations.router)
     app.include_router(audit.router)
+    app.include_router(backtest.router)
     app.include_router(signal_ws.router)
 
     Instrumentator().instrument(app).expose(app, endpoint="/metrics")
@@ -75,7 +84,26 @@ def create_app() -> FastAPI:
         except Exception:  # noqa: BLE001
             redis_ok = False
 
-        return {"status": "ok", "db": db_ok, "redis": redis_ok, "worker": worker_ok}
+        payload: dict[str, object] = {
+            "status": "ok",
+            "db": db_ok,
+            "redis": redis_ok,
+            "worker": worker_ok,
+        }
+        if db_ok:
+            try:
+                async with SessionLocal() as db:
+                    monitoring = await check_system_health(db)
+                payload["monitoring"] = monitoring
+                worker_heartbeat_gauge.set(1 if monitoring["worker"] else 0)
+                ingest_stale_gauge.set(1 if monitoring["ingest_stale"] else 0)
+                mock_price_mode_gauge.set(1 if monitoring["mock_price_mode"] else 0)
+                mock_news_mode_gauge.set(1 if monitoring["mock_news_mode"] else 0)
+                if monitoring["alerts"]:
+                    payload["status"] = "degraded"
+            except Exception:  # noqa: BLE001
+                pass
+        return payload
 
     return app
 

@@ -33,6 +33,11 @@ services:
       TELEGRAM_BOT_TOKEN: ""
       TELEGRAM_CHAT_ID: ""
       PRICE_SOURCE: "mock"
+      NEWS_SOURCE: "mock"
+      NEWS_API_KEY: ""
+      POLYGON_API_KEY: ""
+      PAPER_TRADING_MODE: "true"
+      ENVIRONMENT: "development"
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -44,6 +49,19 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://invest:invest_local@postgres:5432/invest_agent
       REDIS_URL: redis://redis:6379/0
+      NEWS_SOURCE: "mock"
+      NEWS_API_KEY: ""
+      POLYGON_API_KEY: ""
+      PAPER_TRADING_MODE: "true"
+      ENVIRONMENT: "development"
+    depends_on:
+      - backend
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports: ["9090:9090"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     depends_on:
       - backend
 

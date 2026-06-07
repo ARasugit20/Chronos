@@ -23,11 +23,21 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "changeme"
     polygon_api_key: str = ""
+    news_source: str = "mock"
+    news_api_key: str = ""
+    news_api_url: str = "https://finnhub.io/api/v1"
     kelly_odds: float = 2.0
     sector_cap_pct: float = 0.25
     min_allocation_usd: float = 10.0
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
+    paper_trading_mode: bool = True
+    ml_min_outcomes: int = 50
+    research_disclaimer: str = (
+        "Research signal only. Not financial advice. Past performance does not guarantee future results."
+    )
+    stale_ingest_minutes: int = 15
+    environment: str = "development"
 
 
 @lru_cache
