@@ -36,7 +36,7 @@ async def resolve_expired() -> int:
             price_at_signal = await get_price(signal.ticker)
             price_at_expiry = await get_price(signal.ticker)
             realized_return_pct = float((price_at_expiry - price_at_signal) / price_at_signal)
-            hit_boolean = realized_return_pct > 0 and rec.action == "buy"
+            hit_boolean = realized_return_pct > 0 and rec.action in {"buy", "paper_buy"}
             brier_component = (signal.probability_calibrated - float(hit_boolean)) ** 2
             brier_total += brier_component
 

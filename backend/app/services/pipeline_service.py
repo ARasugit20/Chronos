@@ -12,7 +12,7 @@ from app.models.recommendation import Recommendation
 from app.models.signal import Signal
 from app.models.theme_mapping import ThemeMapping
 from app.pipeline.calibrator import IsotonicCalibrator
-from app.pipeline.dedup import compute_fingerprint, is_duplicate, mark_fingerprint_seen
+from app.pipeline.dedup import is_duplicate, mark_fingerprint_seen, resolve_fingerprint
 from app.pipeline.scorer import LightGBMScorer, RulesScorer
 from app.pipeline.sectors import ticker_sector
 from app.pipeline.theme_mapper import match_themes
@@ -45,7 +45,13 @@ async def ingest_event(
     metadata: dict,
 ) -> tuple[Event | None, str, bool]:
     occurred_date = occurred_at.date()
-    fingerprint = compute_fingerprint(source, event_type, title, occurred_date)
+    fingerprint = resolve_fingerprint(
+        source=source,
+        event_type=event_type,
+        title=title,
+        occurred_date=occurred_date,
+        metadata=metadata,
+    )
 
     if await is_duplicate(fingerprint, redis_client, db):
         events_ingested_total.labels(source=source, is_duplicate="true").inc()
@@ -82,7 +88,10 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
         logger.info("pipeline.no_theme_match", event_id=str(event.id), title=event.title)
         return
 
-    scorer = LightGBMScorer(settings.model_path)
+    outcome_count = await _count_outcomes(db)
+    use_ml = outcome_count >= settings.ml_min_outcomes
+    scorer = LightGBMScorer(settings.model_path) if use_ml else RulesScorer()
+    model_version = "lgbm-v1" if use_ml else "rules-v1"
     calibrator = IsotonicCalibrator()
     rules = RulesScorer()
 
@@ -95,7 +104,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
     ).all()
     existing_positions: dict[str, float] = {}
     for rec, signal in existing_recs:
-        if rec.action == "buy":
+        if rec.action in {"buy", "paper_buy"}:
             existing_positions[signal.ticker] = existing_positions.get(signal.ticker, 0.0) + float(
                 rec.amount_usd
             )
@@ -120,7 +129,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 probability_raw=raw,
                 probability_calibrated=calibrated,
                 horizon_hours=HORIZON_HOURS,
-                model_version="rules-v1",
+                model_version=model_version,
                 confidence_bucket=confidence_bucket(calibrated),
                 suppressed=suppressed,
                 suppression_reason=suppression_reason,
@@ -158,6 +167,8 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 f"{event.title} maps to {ticker} via theme '{match.mapping.event_pattern}' "
                 f"(prior={match.mapping.confidence_prior:.2f}, score={calibrated:.2f})"
             )
+            if settings.paper_trading_mode and action == "buy":
+                action = "paper_buy"
             recommendation = Recommendation(
                 signal_id=signal.id,
                 action=action,
@@ -166,6 +177,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 expires_at=expires_at,
                 reason=reason,
                 status="pending",
+                disclaimer=settings.research_disclaimer,
             )
             db.add(recommendation)
             if action == "buy":
@@ -180,3 +192,12 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             )
 
     _ = rules
+
+
+async def _count_outcomes(db: AsyncSession) -> int:
+    from app.models.outcome import Outcome
+    from sqlalchemy import func
+
+    return (
+        await db.execute(select(func.count()).select_from(Outcome))
+    ).scalar_one()
