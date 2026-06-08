@@ -56,9 +56,13 @@ async def test_suppressed_signal_no_recommendation(db_session: AsyncSession) -> 
     from sqlalchemy import select
     from sqlalchemy.orm import selectinload
 
+    from app.models.signal import Signal
+
     event = (
         await db_session.execute(
-            select(Event).options(selectinload(Event.signals)).where(Event.id == event.id)
+            select(Event)
+            .options(selectinload(Event.signals).selectinload(Signal.recommendation))
+            .where(Event.id == event.id)
         )
     ).scalar_one()
     assert len(event.signals) == 1
