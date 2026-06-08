@@ -21,7 +21,7 @@ from app.logging_config import configure_logging
 from app.middleware import RequestContextMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.ws import signal_ws
-from app.redis_client import get_redis
+from app.redis_client import close_redis, get_redis
 
 configure_logging()
 logger = structlog.get_logger(__name__)
@@ -32,8 +32,7 @@ async def lifespan(_: FastAPI):
     logger.info("app.startup")
     yield
     await engine.dispose()
-    redis = get_redis()
-    await redis.aclose()
+    await close_redis()
 
 
 def create_app() -> FastAPI:
