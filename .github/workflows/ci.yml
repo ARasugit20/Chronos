@@ -57,12 +57,12 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]"
-      - working-directory: backend
-        env:
+      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
-        run: pytest tests/ -v --tb=short
+        run: bash scripts/run_ci_tests.sh tests/ -v --tb=short
 
   coverage:
     needs: test
@@ -84,12 +84,12 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]" pytest-cov
-      - working-directory: backend
-        env:
+      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
-        run: pytest tests/ --cov=app --cov-report=term --cov-fail-under=60 -q
+        run: bash scripts/run_ci_tests.sh tests/ --cov=app --cov-report=term --cov-fail-under=60 -q
 
   e2e:
     needs: test
@@ -111,12 +111,12 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]"
-      - working-directory: backend
-        env:
+      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
-        run: pytest tests/test_e2e_smoke.py -v
+        run: bash scripts/run_ci_tests.sh tests/test_e2e_smoke.py -v
 
   frontend:
     runs-on: ubuntu-latest
