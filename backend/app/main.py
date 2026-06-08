@@ -25,6 +25,7 @@ from app.redis_client import close_redis, get_redis
 
 configure_logging()
 logger = structlog.get_logger(__name__)
+_metrics_instrumented = False
 
 
 @asynccontextmanager
@@ -38,6 +39,7 @@ async def lifespan(_: FastAPI):
 
 
 def create_app() -> FastAPI:
+    global _metrics_instrumented
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
@@ -64,7 +66,9 @@ def create_app() -> FastAPI:
     app.include_router(backtest.router)
     app.include_router(signal_ws.router)
 
-    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+    if not _metrics_instrumented:
+        Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+        _metrics_instrumented = True
 
     @app.get("/api/v1/health")
     async def healthcheck() -> dict[str, object]:
