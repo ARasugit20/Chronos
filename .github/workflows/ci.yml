@@ -57,7 +57,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]"
-      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - run: chmod +x scripts/run_ci_tests.sh scripts/run_backend_tests.py
       - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
@@ -84,7 +84,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]" pytest-cov
-      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - run: chmod +x scripts/run_ci_tests.sh scripts/run_backend_tests.py
       - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
@@ -111,7 +111,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]"
-      - run: chmod +x scripts/run_ci_tests.sh scripts/wait_for_services.sh
+      - run: chmod +x scripts/run_ci_tests.sh scripts/run_backend_tests.py
       - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
