@@ -3,8 +3,10 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import text
+from starlette.responses import Response
 
 from app.api import audit, auth, backtest, events, recommendations, signals
 from app.database import SessionLocal
@@ -26,6 +28,12 @@ from app.redis_client import close_redis, get_redis
 configure_logging()
 logger = structlog.get_logger(__name__)
 _metrics_instrumented = False
+
+
+def _register_metrics_route(app: FastAPI) -> None:
+    @app.get("/metrics")
+    async def prometheus_metrics() -> Response:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @asynccontextmanager
@@ -67,8 +75,9 @@ def create_app() -> FastAPI:
     app.include_router(signal_ws.router)
 
     if not _metrics_instrumented:
-        Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+        Instrumentator().instrument(app)
         _metrics_instrumented = True
+    _register_metrics_route(app)
 
     @app.get("/api/v1/health")
     async def healthcheck() -> dict[str, object]:

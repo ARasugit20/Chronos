@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import delete
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.config import get_settings
@@ -51,9 +51,10 @@ async def _reset_state(db_engine) -> AsyncGenerator[None, None]:
     except Exception:  # noqa: BLE001
         pass
     yield
-    async with db_engine.begin() as conn:
-        for table in reversed(Base.metadata.sorted_tables):
-            await conn.execute(delete(table))
+    table_names = ", ".join(f'"{t.name}"' for t in reversed(Base.metadata.sorted_tables))
+    if table_names:
+        async with db_engine.begin() as conn:
+            await conn.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
     try:
         redis = get_redis()
         await redis.flushdb()
