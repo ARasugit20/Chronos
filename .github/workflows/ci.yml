@@ -61,6 +61,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: test
         run: pytest tests/ -v --tb=short
 
   coverage:
@@ -87,6 +88,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: test
         run: pytest tests/ --cov=app --cov-report=term --cov-fail-under=60 -q
 
   e2e:
@@ -113,6 +115,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: test
         run: pytest tests/test_e2e_smoke.py -v
 
   frontend:

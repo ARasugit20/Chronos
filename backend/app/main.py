@@ -29,10 +29,12 @@ logger = structlog.get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    settings = get_settings()
     logger.info("app.startup")
     yield
-    await engine.dispose()
-    await close_redis()
+    if settings.environment == "production":
+        await engine.dispose()
+        await close_redis()
 
 
 def create_app() -> FastAPI:
