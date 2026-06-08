@@ -13,7 +13,10 @@ async def test_rate_limit_returns_429(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(settings, "rate_limit_window_seconds", 60)
 
     app = create_app()
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app, lifespan="off"),
+        base_url="http://test",
+    ) as client:
         for _ in range(2):
             await client.get("/api/v1/signals/live")
         blocked = await client.get("/api/v1/signals/live")

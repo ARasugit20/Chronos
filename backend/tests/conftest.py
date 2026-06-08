@@ -13,6 +13,12 @@ pytest_plugins = ("pytest_asyncio",)
 
 @pytest_asyncio.fixture(autouse=True)
 async def _redis_cleanup() -> AsyncGenerator[None, None]:
+    reset_redis()
+    try:
+        redis = get_redis()
+        await redis.flushdb()
+    except Exception:  # noqa: BLE001
+        pass
     yield
     try:
         redis = get_redis()
@@ -56,7 +62,7 @@ async def client(db_engine) -> AsyncGenerator[AsyncClient, None]:
     app = create_app()
     app.dependency_overrides[get_db_session] = override_db
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=app, lifespan="off")
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
@@ -74,7 +80,7 @@ async def auth_client(db_engine) -> AsyncGenerator[AsyncClient, None]:
     app = create_app()
     app.dependency_overrides[get_db_session] = override_db
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=app, lifespan="off")
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
