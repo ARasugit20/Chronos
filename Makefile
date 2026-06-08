@@ -1,4 +1,4 @@
-.PHONY: up down migrate seed test lint
+.PHONY: up down migrate seed test test-ci lint
 
 up:
 	docker compose -f infra/docker-compose.yml up --build -d
@@ -17,6 +17,9 @@ seed-demo:
 
 test-backend:
 	docker compose -f infra/docker-compose.yml exec backend pytest tests/ -v --tb=short
+
+test-ci:
+	bash scripts/run_ci_tests.sh tests/ -v --tb=short
 
 test-frontend:
 	cd frontend && npm run test

@@ -12,3 +12,5 @@ dist/
 *.egg-info/
 .coverage
 htmlcov/
+*.tsbuildinfo
+backend/models/*.pkl
