@@ -7,7 +7,7 @@ from sqlalchemy import String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, NaiveUTCDateTime
 
 
 class Event(Base):
@@ -17,7 +17,7 @@ class Event(Base):
     source: Mapped[str] = mapped_column(String, nullable=False)
     event_type: Mapped[str] = mapped_column(String, nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
-    occurred_at: Mapped[datetime] = mapped_column(nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(NaiveUTCDateTime, nullable=False)
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=False)
     fingerprint_hash: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)

@@ -7,7 +7,7 @@ from decimal import Decimal
 from sqlalchemy import ForeignKey, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, NaiveUTCDateTime
 
 
 class Outcome(Base):
@@ -19,7 +19,7 @@ class Outcome(Base):
         unique=True,
         nullable=False,
     )
-    resolved_at: Mapped[datetime] = mapped_column(nullable=False)
+    resolved_at: Mapped[datetime] = mapped_column(NaiveUTCDateTime, nullable=False)
     price_at_signal: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     price_at_expiry: Mapped[Decimal] = mapped_column(Numeric(12, 4), nullable=False)
     realized_return_pct: Mapped[float] = mapped_column(nullable=False)

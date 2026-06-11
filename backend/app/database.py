@@ -1,10 +1,23 @@
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 
-from sqlalchemy import MetaData
+from sqlalchemy import DateTime, MetaData, TypeDecorator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import get_settings
+
+
+class NaiveUTCDateTime(TypeDecorator[datetime]):
+    """Store timezone-aware datetimes as naive UTC for TIMESTAMP WITHOUT TIME ZONE columns."""
+
+    impl = DateTime(timezone=False)
+    cache_ok = True
+
+    def process_bind_param(self, value: datetime | None, dialect: object) -> datetime | None:
+        if value is not None and value.tzinfo is not None:
+            return value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
 
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",

@@ -18,7 +18,10 @@ seed-demo:
 test-backend:
 	docker compose -f infra/docker-compose.yml exec backend pytest tests/ -v --tb=short
 
-test-ci:
+test-postgres:
+	bash scripts/start_test_postgres.sh start
+
+test-ci: test-postgres
 	bash scripts/run_ci_tests.sh tests/ -v --tb=short
 
 test-frontend:

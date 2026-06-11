@@ -74,6 +74,66 @@ make seed
 
 ---
 
+## Running tests
+
+You do **not** need the full Docker Compose stack for tests. CI and local pytest only require **PostgreSQL** on `localhost:5432`. Redis is mocked in-memory via **fakeredis**.
+
+### Option A — Postgres container only (recommended)
+
+```bash
+# Start Postgres (creates container chronos-pg if needed)
+make test-postgres
+
+# Install backend dev deps once
+cd backend && pip install -e ".[dev]"
+
+# Run the same suite as GitHub Actions
+make test-ci
+```
+
+Or manually:
+
+```bash
+bash scripts/start_test_postgres.sh start
+bash scripts/run_ci_tests.sh tests/ -v --tb=short
+```
+
+Stop/remove the test database when finished:
+
+```bash
+bash scripts/start_test_postgres.sh stop   # stop container
+bash scripts/start_test_postgres.sh rm     # remove container
+```
+
+### Option B — Full stack + tests
+
+```bash
+make up          # API, worker, Postgres, Redis, frontend
+make test-ci     # pytest on your host (still only needs Postgres)
+```
+
+### Option C — Native Postgres (no Docker)
+
+Install PostgreSQL locally and create:
+
+| Setting | Value |
+|---------|-------|
+| Database | `invest_agent` |
+| User | `invest` |
+| Password | `invest_local` |
+| Port | `5432` |
+
+Then run `make test-ci` (skip `make test-postgres`).
+
+### Unit tests only (no database)
+
+```bash
+cd backend
+pytest tests/test_entity_extractor.py tests/test_theme_mapper.py tests/test_news_source.py -v
+```
+
+---
+
 ## Deploy to Render (one-click)
 
 1. Fork this repo.

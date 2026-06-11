@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy import ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, NaiveUTCDateTime
 
 
 class Recommendation(Base):
@@ -24,7 +24,7 @@ class Recommendation(Base):
     action: Mapped[str] = mapped_column(String, nullable=False)
     amount_usd: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     pct_cash: Mapped[float] = mapped_column(nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(NaiveUTCDateTime, nullable=False)
     reason: Mapped[str] = mapped_column(String, nullable=False)
     status: Mapped[str] = mapped_column(default="pending", nullable=False)
     disclaimer: Mapped[str] = mapped_column(default="Research signal only. Not financial advice.", nullable=False)
