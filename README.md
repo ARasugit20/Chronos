@@ -72,6 +72,8 @@ make seed
 | Dashboard | http://localhost:3000 |
 | Metrics | http://localhost:8000/metrics |
 
+For frontend-only development, copy `frontend/.env.example` to `frontend/.env.local` if you need to point the dashboard at a deployed API. Leave `VITE_API_URL` unset for the default local backend at `http://localhost:8000`.
+
 ---
 
 ## Running tests
