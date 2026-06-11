@@ -38,11 +38,11 @@ async def check_system_health(db: AsyncSession) -> dict[str, object]:
             ingest_stale = True
             alerts.append("ingest_stale")
 
-    mock_price_mode = not bool(settings.polygon_api_key)
+    mock_price_mode = settings.price_source == "mock"
     if settings.environment == "production" and mock_price_mode:
         alerts.append("mock_prices_in_production")
 
-    mock_news_mode = settings.news_source == "mock" or not settings.news_api_key
+    mock_news_mode = settings.news_source == "mock"
     if settings.environment == "production" and mock_news_mode:
         alerts.append("mock_news_in_production")
 

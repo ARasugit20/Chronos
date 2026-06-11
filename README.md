@@ -1,6 +1,8 @@
 # Chronos (invest-agent)
 
 [![CI](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml/badge.svg)](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7)](https://chronos-api.onrender.com/api/v1/health)
+[![Dashboard](https://img.shields.io/badge/Dashboard-Frontend-blue)](https://chronos-frontend.onrender.com)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -69,6 +71,27 @@ make seed
 | OpenAPI docs | http://localhost:8000/docs |
 | Dashboard | http://localhost:3000 |
 | Metrics | http://localhost:8000/metrics |
+
+---
+
+## Deploy to Render (one-click)
+
+1. Fork this repo.
+2. In [Render Dashboard](https://dashboard.render.com/), click
+   **New → Blueprint** and point it at your fork.
+   Render reads `render.yaml` and creates: API, Worker, Redis, Postgres.
+3. Set these two env vars as **secrets** in the Render API service:
+   - `NEWS_API_KEY` — free key from https://finnhub.io/register
+   - `ADMIN_PASSWORD` — any strong password
+4. Click **Deploy**. The pipeline ingests real Finnhub headlines
+   every 5 minutes via Celery Beat.
+5. Visit `/api/v1/health` — when `mock_news_mode: false`, real
+   data is flowing.
+
+> **Paper trading mode is on by default** (`PAPER_TRADING_MODE=true`).
+> Recommendations are labelled `paper_buy` and carry the research
+> disclaimer. To remove paper mode, set `PAPER_TRADING_MODE=false`
+> only after you have validated signal quality on your own data.
 
 ---
 

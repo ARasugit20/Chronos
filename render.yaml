@@ -29,6 +29,8 @@ services:
         generateValue: true
       - key: PAPER_TRADING_MODE
         value: "true"
+      - key: CORS_ORIGINS
+        value: '["https://chronos-frontend.onrender.com"]'
 
   - type: worker
     name: chronos-worker
@@ -65,6 +67,10 @@ services:
     runtime: static
     buildCommand: cd frontend && npm ci && npm run build
     staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_URL
         fromService:

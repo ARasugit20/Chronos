@@ -1,5 +1,7 @@
+import json
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +19,7 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
     price_source: str = "mock"
     cors_origins: list[str] = ["http://localhost:3000"]
+    frontend_url: str = "http://localhost:3000"
     secret_key: str = "changeme"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
@@ -38,6 +41,16 @@ class Settings(BaseSettings):
     )
     stale_ingest_minutes: int = 15
     environment: str = "development"
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors(cls, v: object) -> list[str]:
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except (json.JSONDecodeError, ValueError):
+                return [v]
+        return v  # type: ignore[return-value]
 
 
 @lru_cache

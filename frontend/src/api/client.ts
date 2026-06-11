@@ -1,10 +1,12 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `https://${import.meta.env.VITE_API_URL}`
+  : "http://localhost:8000";
 const TOKEN_KEY = "chronos_token";
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: BASE_URL,
   timeout: 15_000,
 });
 
