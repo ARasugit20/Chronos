@@ -153,6 +153,8 @@ pytest tests/test_entity_extractor.py tests/test_theme_mapper.py tests/test_news
 > disclaimer. To remove paper mode, set `PAPER_TRADING_MODE=false`
 > only after you have validated signal quality on your own data.
 
+See [docs/render-deploy-checklist.md](docs/render-deploy-checklist.md) for the full production verification checklist.
+
 ---
 
 ## API overview
