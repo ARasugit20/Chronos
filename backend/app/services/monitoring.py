@@ -39,21 +39,31 @@ async def check_system_health(db: AsyncSession) -> dict[str, object]:
             alerts.append("ingest_stale")
 
     mock_price_mode = settings.price_source == "mock"
+    live_price_ready = not mock_price_mode
     if settings.environment == "production" and mock_price_mode:
         alerts.append("mock_prices_in_production")
 
     mock_news_mode = settings.news_source == "mock"
+    live_news_ready = not mock_news_mode and bool(settings.news_api_key)
     if settings.environment == "production" and mock_news_mode:
         alerts.append("mock_news_in_production")
+    if settings.environment == "production" and settings.news_source != "mock" and not settings.news_api_key:
+        alerts.append("news_api_key_missing")
 
     status = "degraded" if alerts else "healthy"
     return {
         "status": status,
+        "environment": settings.environment,
         "worker": worker_ok,
         "ingest_stale": ingest_stale,
         "last_ingest_at": last_ingest.isoformat() if last_ingest else None,
+        "news_source": settings.news_source,
+        "price_source": settings.price_source,
         "mock_price_mode": mock_price_mode,
         "mock_news_mode": mock_news_mode,
+        "live_price_ready": live_price_ready,
+        "live_news_ready": live_news_ready,
         "paper_trading_mode": settings.paper_trading_mode,
+        "frontend_url": settings.frontend_url,
         "alerts": alerts,
     }
