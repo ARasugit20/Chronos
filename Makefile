@@ -1,4 +1,4 @@
-.PHONY: up down migrate seed test test-ci lint
+.PHONY: up down migrate seed test test-ci check-live lint
 
 up:
 	docker compose -f infra/docker-compose.yml up --build -d
@@ -23,6 +23,9 @@ test-postgres:
 
 test-ci: test-postgres
 	bash scripts/run_ci_tests.sh tests/ -v --tb=short
+
+check-live:
+	python3 scripts/check_live_deploy.py $${CHRONOS_API_URL:-http://localhost:8000}
 
 test-frontend:
 	cd frontend && npm run test
