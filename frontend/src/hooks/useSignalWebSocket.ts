@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { resolveWebSocketBaseUrl } from "../api/config";
 import type { Signal } from "../types/domain";
 
-const WS_URL = `${(import.meta.env.VITE_API_URL ?? "http://localhost:8000").replace("http", "ws")}/ws/signals`;
+const WS_URL = `${resolveWebSocketBaseUrl()}/ws/signals`;
 
 export type ConnectionStatus = "connected" | "reconnecting" | "disconnected";
 
