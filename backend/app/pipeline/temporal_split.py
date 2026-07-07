@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Any, Callable, Generic, TypeVar
 
 T = TypeVar("T")
 
 
 @dataclass
-class TemporalSplit:
+class TemporalSplit(Generic[T]):
     train: list[T]
     calibrate: list[T]
     test: list[T]
@@ -20,8 +20,8 @@ def split_by_time(
     *,
     train_ratio: float = 0.70,
     calibrate_ratio: float = 0.15,
-    sort_key,
-) -> TemporalSplit:
+    sort_key: Callable[[T], Any],
+) -> TemporalSplit[T]:
     if not rows:
         return TemporalSplit(train=[], calibrate=[], test=[])
 

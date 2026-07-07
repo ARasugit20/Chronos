@@ -74,7 +74,7 @@ async def run_model_retrain() -> RetrainReport:
             oos_brier=None,
         )
 
-    split = split_by_time(rows, sort_key=lambda row: row.resolved_at)
+    split = split_by_time(list(rows), sort_key=lambda row: row.resolved_at)
     train_x, train_y, _, _ = _outcome_rows(split.train)
     _, _, calibrate_raw, calibrate_hits = _outcome_rows(split.calibrate)
     _, _, test_raw, test_hits = _outcome_rows(split.test)

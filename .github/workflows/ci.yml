@@ -57,17 +57,17 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e "./backend[dev]"
-      - run: chmod +x scripts/run_ci_tests.sh scripts/run_backend_tests.py
-      - env:
-          DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
-          REDIS_URL: redis://localhost:6379/0
-          ENVIRONMENT: test
-        run: bash scripts/run_ci_tests.sh tests/ -v --tb=short
+      - run: chmod +x scripts/run_ci_tests.sh scripts/run_backend_tests.py scripts/validate_migrations.py
       - run: python scripts/validate_migrations.py
       - env:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
         working-directory: backend
         run: alembic upgrade head
+      - env:
+          DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
+          REDIS_URL: redis://localhost:6379/0
+          ENVIRONMENT: test
+        run: bash scripts/run_ci_tests.sh tests/ -v --tb=short
 
   coverage:
     needs: test

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from collections.abc import Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -26,7 +28,7 @@ class OutcomeMetricsResult:
     note: str
 
 
-def _bucket_reliability(rows: list[Outcome]) -> dict[str, dict[str, float]]:
+def _bucket_reliability(rows: Sequence[Outcome]) -> dict[str, dict[str, float]]:
     buckets: dict[str, list[tuple[float, int]]] = {}
     for row in rows:
         rec = row.recommendation
