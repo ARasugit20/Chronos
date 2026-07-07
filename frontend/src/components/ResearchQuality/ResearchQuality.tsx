@@ -1,4 +1,4 @@
-import { useOutcomeMetrics } from "../../hooks/useOutcomeMetrics";
+import { useOutcomeMetrics, type BucketReliability } from "../../hooks/useOutcomeMetrics";
 
 function pct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
@@ -18,9 +18,11 @@ export function ResearchQuality() {
     );
   }
 
-  const topTickers = Object.entries(data.precision_by_ticker)
+  const topTickers: [string, number][] = Object.entries(data.precision_by_ticker)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
+
+  const bucketRows: [string, BucketReliability][] = Object.entries(data.bucket_reliability);
 
   return (
     <section className="space-y-4 rounded-lg border border-slate-200 bg-white p-4" aria-labelledby="research-quality-heading">
@@ -29,7 +31,7 @@ export function ResearchQuality() {
           Research Quality
         </h2>
         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
-          {data.methodology.replaceAll("_", " ")}
+          {data.methodology.replace(/_/g, " ")}
         </span>
       </div>
       <p className="text-xs text-slate-500">{data.note}</p>
@@ -60,7 +62,7 @@ export function ResearchQuality() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(data.bucket_reliability).map(([bucket, stats]) => (
+                {bucketRows.map(([bucket, stats]) => (
                   <tr key={bucket} className="border-t">
                     <td className="p-2 font-medium capitalize">{bucket}</td>
                     <td className="p-2">{stats.samples}</td>

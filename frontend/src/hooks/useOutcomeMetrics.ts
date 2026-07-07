@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "../../api/client";
+import { apiClient } from "../api/client";
 
-interface BucketReliability {
+export interface BucketReliability {
   samples: number;
   mean_predicted: number;
   observed_hit_rate: number;
