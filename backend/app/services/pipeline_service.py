@@ -26,6 +26,15 @@ quality_guard = SignalQualityGuard()
 HORIZON_HOURS = 72
 
 
+def _format_allocation_reason(base_reason: str, allocation) -> str:
+    kelly_note = (
+        f"Kelly half={allocation.kelly_half_pct:.1%}, full={allocation.kelly_full_pct:.1%}"
+    )
+    if allocation.adjustment_reason:
+        return f"{base_reason} | {kelly_note} | cap={allocation.adjustment_reason}"
+    return f"{base_reason} | {kelly_note}"
+
+
 def confidence_bucket(probability: float) -> str:
     if probability >= 0.65:
         return "high"
@@ -169,14 +178,17 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             )
             if settings.paper_trading_mode and action == "buy":
                 action = "paper_buy"
+            rec_status = "pending"
+            if action == "paper_buy" and settings.paper_auto_approve:
+                rec_status = "approved"
             recommendation = Recommendation(
                 signal_id=signal.id,
                 action=action,
                 amount_usd=Decimal(str(amount_usd)),
                 pct_cash=pct_cash,
                 expires_at=expires_at,
-                reason=reason,
-                status="pending",
+                reason=_format_allocation_reason(reason, allocation),
+                status=rec_status,
                 disclaimer=settings.research_disclaimer,
             )
             db.add(recommendation)

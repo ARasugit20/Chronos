@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
     paper_trading_mode: bool = True
+    paper_auto_approve: bool = True
     ml_min_outcomes: int = 50
     research_disclaimer: str = (
         "Research signal only. Not financial advice. Past performance does not guarantee future results."
