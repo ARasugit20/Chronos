@@ -20,6 +20,8 @@ def main() -> int:
     from alembic.script import ScriptDirectory
 
     config = Config(str(ini_path))
+    config.set_main_option("script_location", str(BACKEND / "migrations"))
+    config.set_main_option("prepend_sys_path", str(BACKEND))
     script = ScriptDirectory.from_config(config)
     heads = script.get_heads()
     if len(heads) != 1:

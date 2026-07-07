@@ -30,6 +30,7 @@ def main(argv: list[str]) -> int:
     backend = root / "backend"
 
     os.environ.setdefault("ENVIRONMENT", "test")
+    os.environ.setdefault("PAPER_AUTO_APPROVE", "false")
     os.environ.setdefault(
         "DATABASE_URL",
         "postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent",

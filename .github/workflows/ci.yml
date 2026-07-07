@@ -67,6 +67,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
+          PAPER_AUTO_APPROVE: "false"
         run: bash scripts/run_ci_tests.sh tests/ -v --tb=short
 
   coverage:
