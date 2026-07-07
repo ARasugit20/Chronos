@@ -1,4 +1,4 @@
-# WHY: Backtest recommendation quality against resolved outcomes.
+# WHY: Summarize resolved recommendation outcomes for model-quality monitoring.
 
 from __future__ import annotations
 
@@ -14,16 +14,45 @@ from app.models.signal import Signal
 
 
 @dataclass
-class BacktestResult:
+class OutcomeMetricsResult:
+    methodology: str
     total_resolved: int
     hit_rate: float
     mean_brier: float
     precision_by_ticker: dict[str, float]
+    bucket_reliability: dict[str, dict[str, float]]
     ml_ready: bool
     paper_trading: bool
+    note: str
 
 
-async def run_backtest(db: AsyncSession, *, ml_min_outcomes: int = 50) -> BacktestResult:
+def _bucket_reliability(rows: list[Outcome]) -> dict[str, dict[str, float]]:
+    buckets: dict[str, list[tuple[float, int]]] = {}
+    for row in rows:
+        rec = row.recommendation
+        if rec is None or rec.signal is None:
+            continue
+        bucket = rec.signal.confidence_bucket
+        buckets.setdefault(bucket, []).append(
+            (rec.signal.probability_calibrated, 1 if row.hit_boolean else 0)
+        )
+
+    reliability: dict[str, dict[str, float]] = {}
+    for bucket, values in buckets.items():
+        if not values:
+            continue
+        predicted = sum(prob for prob, _ in values) / len(values)
+        observed = sum(hit for _, hit in values) / len(values)
+        reliability[bucket] = {
+            "samples": float(len(values)),
+            "mean_predicted": predicted,
+            "observed_hit_rate": observed,
+            "calibration_gap": abs(predicted - observed),
+        }
+    return reliability
+
+
+async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) -> OutcomeMetricsResult:
     rows = (
         await db.execute(
             select(Outcome)
@@ -36,13 +65,16 @@ async def run_backtest(db: AsyncSession, *, ml_min_outcomes: int = 50) -> Backte
     ).scalars().all()
 
     if not rows:
-        return BacktestResult(
+        return OutcomeMetricsResult(
+            methodology="resolved_outcome_metrics",
             total_resolved=0,
             hit_rate=0.0,
             mean_brier=0.0,
             precision_by_ticker={},
+            bucket_reliability={},
             ml_ready=False,
             paper_trading=True,
+            note="Reports realized outcomes only; not a point-in-time historical replay.",
         )
 
     hits = [1 if row.hit_boolean else 0 for row in rows]
@@ -62,14 +94,22 @@ async def run_backtest(db: AsyncSession, *, ml_min_outcomes: int = 50) -> Backte
         if len(vals) >= 3
     }
 
-    return BacktestResult(
+    return OutcomeMetricsResult(
+        methodology="resolved_outcome_metrics",
         total_resolved=len(rows),
         hit_rate=sum(hits) / len(hits),
         mean_brier=sum(briers) / len(briers),
         precision_by_ticker=precision,
+        bucket_reliability=_bucket_reliability(rows),
         ml_ready=len(rows) >= ml_min_outcomes,
         paper_trading=True,
+        note="Reports realized outcomes only; not a point-in-time historical replay.",
     )
+
+
+# Backward-compatible alias used by existing imports/tests.
+async def run_backtest(db: AsyncSession, *, ml_min_outcomes: int = 50) -> OutcomeMetricsResult:
+    return await run_outcome_metrics(db, ml_min_outcomes=ml_min_outcomes)
 
 
 async def evaluate_signal_quality(db: AsyncSession, ticker: str, lookback: int = 30) -> dict[str, float]:
