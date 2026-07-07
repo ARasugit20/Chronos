@@ -14,6 +14,12 @@ from app.prices.price_service import get_price
 logger = structlog.get_logger(__name__)
 
 
+def _as_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 async def resolve_expired() -> int:
     settings = get_settings()
     now = datetime.now(timezone.utc)
@@ -33,8 +39,15 @@ async def resolve_expired() -> int:
             signal = rec.signal
             if signal is None:
                 continue
-            price_at_signal = await get_price(signal.ticker)
-            price_at_expiry = await get_price(signal.ticker)
+
+            signal_at = _as_utc(signal.created_at)
+            expiry_at = _as_utc(rec.expires_at)
+            price_at_signal = await get_price(signal.ticker, signal_at)
+            price_at_expiry = await get_price(signal.ticker, expiry_at)
+            if price_at_signal == 0:
+                logger.warning("resolver.zero_entry_price", recommendation_id=str(rec.id), ticker=signal.ticker)
+                continue
+
             realized_return_pct = float((price_at_expiry - price_at_signal) / price_at_signal)
             hit_boolean = realized_return_pct > 0 and rec.action in {"buy", "paper_buy"}
             brier_component = (signal.probability_calibrated - float(hit_boolean)) ** 2

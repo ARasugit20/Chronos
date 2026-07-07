@@ -1,9 +1,10 @@
-# WHY: Unified price lookup with Polygon primary and mock fallback.
+# WHY: Unified price lookup with Polygon primary and deterministic mock fallback.
 
 from __future__ import annotations
 
+import hashlib
 import random
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -23,22 +24,37 @@ except Exception:  # noqa: BLE001
     price_fetches_total = None
 
 
-async def get_price(ticker: str, as_of: date | None = None) -> Decimal:
+def _as_of_date(as_of: date | datetime | None) -> date:
+    if as_of is None:
+        return date.today()
+    if isinstance(as_of, datetime):
+        return as_of.date()
+    return as_of
+
+
+def _deterministic_mock_price(ticker: str, as_of: date) -> Decimal:
+    """Return a stable mock close for ticker+date so resolver/backtests are reproducible."""
+    seed = int(hashlib.sha256(f"{ticker.upper()}:{as_of.isoformat()}".encode()).hexdigest()[:8], 16)
+    rng = random.Random(seed)
+    return Decimal(str(round(rng.uniform(50, 500), 4)))
+
+
+async def get_price(ticker: str, as_of: date | datetime | None = None) -> Decimal:
     settings = get_settings()
-    as_of = as_of or date.today()
+    price_date = _as_of_date(as_of)
     if settings.polygon_api_key:
         try:
-            value = await get_polygon_client().get_close_price(ticker, as_of.isoformat())
+            value = await get_polygon_client().get_close_price(ticker, price_date.isoformat())
             if value is not None:
                 if price_fetches_total:
                     price_fetches_total.labels(source="polygon").inc()
-                logger.info("price.polygon", ticker=ticker, price=value)
+                logger.info("price.polygon", ticker=ticker, as_of=price_date.isoformat(), price=value)
                 return Decimal(str(value))
         except PriceUnavailableError as exc:
-            logger.warning("price.polygon_unavailable", error=str(exc))
+            logger.warning("price.polygon_unavailable", ticker=ticker, as_of=price_date.isoformat(), error=str(exc))
 
     if price_fetches_total:
         price_fetches_total.labels(source="mock").inc()
-    mock = round(random.uniform(50, 500), 4)
-    logger.info("price.mock_fallback", ticker=ticker, price=mock)
-    return Decimal(str(mock))
+    mock = _deterministic_mock_price(ticker, price_date)
+    logger.info("price.mock_fallback", ticker=ticker, as_of=price_date.isoformat(), price=str(mock))
+    return mock
