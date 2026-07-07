@@ -181,13 +181,13 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned upgrades: JWT auth, embedding
 
 ## Known Limitations
 
-1. Price data uses mock random walk — replace `PRICE_SOURCE=mock` with `polygon` or `yahoo` for real data
-2. LightGBMScorer is a stub — model trains only after sufficient Outcome records exist (minimum 50 recommended)
-3. Calibration uses fixed 0.85 shrinkage — replace with fitted IsotonicRegression once outcomes accumulate
-4. Theme mapping uses simple regex — upgrade to embedding similarity for better event matching at scale
+1. Price data uses mock random walk unless `PRICE_SOURCE=polygon` and `POLYGON_API_KEY` are configured
+2. LightGBMScorer trains only after sufficient Outcome records exist (minimum 50 recommended)
+3. `/api/v1/outcome-metrics` summarizes resolved outcomes; it is not yet a full historical replay backtest
+4. Theme mapping uses regex + optional embedding fallback — not yet a production pgvector deployment
 5. Mutating API endpoints require JWT (`POST /api/v1/auth/token`); read endpoints remain public
 6. Telegram adapter sends to single chat_id — multi-user requires subscription model
-7. Kelly sizing assumes simplified b=1.0 odds — replace with actual expected return from event study data
+7. Kelly sizing uses configurable odds (`KELLY_ODDS`) — replace with event-study-derived expectations for production research
 
 ---
 

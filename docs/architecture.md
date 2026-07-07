@@ -2,14 +2,21 @@
 
 ## Pipeline stages
 
-1. **Ingest** — Celery beat pulls mock sports/macro/news sources every 5 minutes.
+1. **Ingest** — Celery beat pulls Finnhub or mock news/sports/macro sources every 5 minutes.
 2. **Dedup** — SHA256 fingerprint; Redis SET (48h TTL) then PostgreSQL unique constraint.
 3. **Theme map** — Regex match against seeded `theme_mappings` (human-approved patterns).
-4. **Score** — `RulesScorer` (recency + source trust); `LightGBMScorer` stub for future ML.
-5. **Calibrate** — Isotonic shrinkage stub (0.85 toward 0.5).
+4. **Score** — `RulesScorer` by default; `LightGBMScorer` after enough resolved outcomes.
+5. **Calibrate** — Fitted isotonic regression when enough outcomes exist; shrinkage fallback otherwise.
 6. **Allocate** — Half-Kelly with 8% ticker / 25% sector caps; skip below $10.
-7. **Recommend** — Pending recommendation with disclaimer and expiry horizon.
-8. **Resolve** — Hourly job for approved expired recs; mock prices; Brier component stored.
+7. **Recommend** — Pending or auto-approved paper recommendation with disclaimer and expiry horizon.
+8. **Resolve** — Hourly job for approved expired recs; entry/exit prices fetched at signal and expiry timestamps; Brier component stored.
+
+## Quant validity notes
+
+- Outcome resolution uses **timestamped prices** at signal creation and recommendation expiry.
+- Retraining uses a **time-ordered train/calibrate/test split** to reduce leakage.
+- `/api/v1/outcome-metrics` reports realized outcome quality; it does not replay historical point-in-time features/prices.
+- Paper trading can auto-approve a shadow track so outcomes remain resolvable without manual clicks.
 
 ## Data model
 

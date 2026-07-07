@@ -57,7 +57,24 @@ Sets `status=skipped`.
 
 Returns recommendation, signal, event, and outcome (if resolved).
 
+## Research metrics
+
+### `GET /api/v1/outcome-metrics`
+
+Returns **resolved outcome metrics** for model-quality monitoring:
+
+- hit rate and mean Brier score
+- precision by ticker (minimum 3 samples)
+- confidence-bucket reliability (predicted vs observed)
+- `ml_ready` when enough outcomes exist for retraining
+
+This endpoint reports realized outcomes only. It is **not** a point-in-time historical replay engine.
+
+### `GET /api/v1/backtest` (deprecated)
+
+Compatibility alias for `/api/v1/outcome-metrics`.
+
 ## Health & metrics
 
-- `GET /api/v1/health` — `{ status, db, redis, worker }`
+- `GET /api/v1/health` — DB/Redis/worker status plus deploy readiness flags (`live_news_ready`, `live_price_ready`, etc.)
 - `GET /metrics` — Prometheus exposition

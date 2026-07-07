@@ -16,10 +16,15 @@
 - [x] Dark/light theme toggle
 - [x] WebSocket signal feed
 - [x] CI coverage + type-check jobs
+- [x] Render deploy blueprint + live deploy smoke checks
+- [x] Timestamp-correct outcome resolution
+- [x] Temporal train/calibrate/test retrain split
+- [x] Outcome metrics API + research dashboard
+- [x] Alembic migration validation in CI
 
 ## Next
 
-- [ ] Deploy preview (Railway / Render)
+- [ ] Point-in-time historical replay backtest engine
 - [ ] Demo GIF in README
 - [ ] pgvector for production embeddings
 - [ ] Horizontal Celery autoscaling

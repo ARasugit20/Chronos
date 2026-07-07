@@ -63,6 +63,11 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
         run: bash scripts/run_ci_tests.sh tests/ -v --tb=short
+      - run: python scripts/validate_migrations.py
+      - env:
+          DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
+        working-directory: backend
+        run: alembic upgrade head
 
   coverage:
     needs: test
