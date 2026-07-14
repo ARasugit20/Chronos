@@ -80,17 +80,16 @@ async def run_model_retrain() -> RetrainReport:
     _, _, test_raw, test_hits = _outcome_rows(split.test)
 
     train_brier: float | None = None
+    calibrator = IsotonicCalibrator()
     if len(train_x) >= 10:
         train_brier = LightGBMScorer.train(train_x, train_y)
 
     if len(calibrate_raw) >= 5:
-        calibrator = IsotonicCalibrator()
         calibrator.fit(calibrate_raw, calibrate_hits)
 
     oos_hit_rate: float | None = None
     oos_brier: float | None = None
     if test_raw and test_hits:
-        calibrator = IsotonicCalibrator()
         calibrated = [calibrator.calibrate(raw) for raw in test_raw]
         oos_hit_rate = sum(test_hits) / len(test_hits)
         oos_brier = sum((p - float(h)) ** 2 for p, h in zip(calibrated, test_hits, strict=True)) / len(test_hits)
