@@ -15,6 +15,14 @@ class TemporalSplit(Generic[T]):
     test: list[T]
 
 
+@dataclass(frozen=True)
+class WalkForwardFold(Generic[T]):
+    fold: int
+    train: list[T]
+    calibrate: list[T]
+    test: list[T]
+
+
 def split_by_time(
     rows: list[T],
     *,
@@ -38,3 +46,35 @@ def split_by_time(
         calibrate=ordered[train_end:calibrate_end],
         test=ordered[calibrate_end:],
     )
+
+
+def expanding_walk_forward(
+    rows: list[T],
+    *,
+    sort_key: Callable[[T], Any],
+    min_train_size: int,
+    calibrate_size: int,
+    test_size: int,
+) -> list[WalkForwardFold[T]]:
+    """Build non-overlapping OOS windows with an expanding training history."""
+    if min_train_size < 1 or calibrate_size < 1 or test_size < 1:
+        raise ValueError("walk-forward window sizes must be positive")
+
+    ordered = sorted(rows, key=sort_key)
+    folds: list[WalkForwardFold[T]] = []
+    train_end = min_train_size
+    fold_number = 1
+    while train_end + calibrate_size + test_size <= len(ordered):
+        calibrate_end = train_end + calibrate_size
+        test_end = calibrate_end + test_size
+        folds.append(
+            WalkForwardFold(
+                fold=fold_number,
+                train=ordered[:train_end],
+                calibrate=ordered[train_end:calibrate_end],
+                test=ordered[calibrate_end:test_end],
+            )
+        )
+        train_end += test_size
+        fold_number += 1
+    return folds
