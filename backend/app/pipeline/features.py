@@ -18,7 +18,12 @@ SOURCE_TRUST: dict[str, float] = {
 DOLLAR_RE = re.compile(r"\$[\d,]+")
 
 
-def extract_features(event: Event, theme: ThemeMapping | None = None) -> dict[str, float | int | bool]:
+def extract_features(
+    event: Event,
+    theme: ThemeMapping | None = None,
+    *,
+    horizon_hours: float = 72.0,
+) -> dict[str, float | int | bool]:
     occurred = event.occurred_at
     title = event.title
     pattern = theme.event_pattern if theme else ""
@@ -30,7 +35,7 @@ def extract_features(event: Event, theme: ThemeMapping | None = None) -> dict[st
         "title_length": float(len(title)),
         "has_dollar_amount": bool(DOLLAR_RE.search(title)),
         "keyword_count": float(keyword_hits),
-        "days_to_expiry": 5.0,
+        "days_to_expiry": round(horizon_hours / 24.0, 2),
     }
 
 

@@ -16,7 +16,13 @@ DEFAULT_MODEL_PATH = Path("models/lgbm_scorer.pkl")
 
 
 class BaseScorer(Protocol):
-    def score(self, event: Event, theme: ThemeMapping) -> float:
+    def score(
+        self,
+        event: Event,
+        theme: ThemeMapping,
+        *,
+        as_of: datetime | None = None,
+    ) -> float:
         """Returns raw probability 0.0-1.0"""
         ...
 
@@ -24,13 +30,21 @@ class BaseScorer(Protocol):
 class RulesScorer:
     CONFIDENCE_THRESHOLD = 0.50
 
-    def score(self, event: Event, theme: ThemeMapping) -> float:
+    def score(
+        self,
+        event: Event,
+        theme: ThemeMapping,
+        *,
+        as_of: datetime | None = None,
+    ) -> float:
         score = theme.confidence_prior
-        now = datetime.now(timezone.utc)
+        reference = as_of or datetime.now(timezone.utc)
+        if reference.tzinfo is None:
+            reference = reference.replace(tzinfo=timezone.utc)
         occurred = event.occurred_at
         if occurred.tzinfo is None:
             occurred = occurred.replace(tzinfo=timezone.utc)
-        if (now - occurred).days <= 7:
+        if (reference - occurred).days <= 7:
             score += 0.03
         if event.source in HIGH_TRUST_SOURCES:
             score += 0.02
@@ -50,9 +64,15 @@ class LightGBMScorer:
             except Exception as exc:  # noqa: BLE001
                 logger.warning("scorer.model_load_failed", path=str(self._model_path), error=str(exc))
 
-    def score(self, event: Event, theme: ThemeMapping) -> float:
+    def score(
+        self,
+        event: Event,
+        theme: ThemeMapping,
+        *,
+        as_of: datetime | None = None,
+    ) -> float:
         if self._model is None:
-            return self._fallback.score(event, theme)
+            return self._fallback.score(event, theme, as_of=as_of)
         features = extract_features(event, theme)
         vector = [features_to_vector(features)]
         try:
@@ -60,7 +80,7 @@ class LightGBMScorer:
             return max(0.0, min(1.0, float(proba)))
         except Exception as exc:  # noqa: BLE001
             logger.warning("scorer.predict_failed", error=str(exc))
-            return self._fallback.score(event, theme)
+            return self._fallback.score(event, theme, as_of=as_of)
 
     @classmethod
     def train(cls, X: list[list[float]], y: list[int], model_path: Path | None = None) -> float:

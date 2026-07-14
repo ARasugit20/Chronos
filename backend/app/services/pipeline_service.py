@@ -87,8 +87,25 @@ async def ingest_event(
     return event, fingerprint, False
 
 
+async def _recent_hits_for_ticker(db: AsyncSession, ticker: str, limit: int = 10) -> list[bool]:
+    from app.models.outcome import Outcome
+
+    rows = (
+        await db.execute(
+            select(Outcome)
+            .join(Recommendation, Outcome.recommendation_id == Recommendation.id)
+            .join(Signal, Recommendation.signal_id == Signal.id)
+            .where(Signal.ticker == ticker)
+            .order_by(Outcome.resolved_at.desc())
+            .limit(limit)
+        )
+    ).scalars().all()
+    return [bool(row.hit_boolean) for row in rows]
+
+
 async def process_event_signals(db: AsyncSession, event: Event) -> None:
     settings = get_settings()
+    as_of = datetime.now(timezone.utc)
     mappings = (
         await db.execute(select(ThemeMapping).where(ThemeMapping.approved_by_human.is_(True)))
     ).scalars().all()
@@ -120,7 +137,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
 
     for match in matches:
         for ticker in match.tickers:
-            raw = scorer.score(event, match.mapping)
+            raw = scorer.score(event, match.mapping, as_of=as_of)
             calibrated = calibrator.calibrate(raw, event.event_type)
             suppressed = calibrated < settings.confidence_threshold
             suppression_reason = None
@@ -160,6 +177,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 logger.info("pipeline.signal_suppressed", signal_id=str(signal.id), ticker=ticker)
                 continue
 
+            recent_hits = await _recent_hits_for_ticker(db, ticker)
             allocation = allocator.compute_allocation(
                 calibrated,
                 settings.portfolio_cash,
@@ -167,6 +185,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 settings.portfolio_value,
                 ticker,
                 ticker_sector(ticker),
+                recent_hits=recent_hits,
             )
             amount_usd = allocation.amount_usd
             pct_cash = allocation.pct_cash

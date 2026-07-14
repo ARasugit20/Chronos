@@ -31,6 +31,28 @@ async def test_rules_scorer_recency_boost() -> None:
     assert score >= theme.confidence_prior
 
 
+def test_rules_scorer_point_in_time_no_recency_leakage() -> None:
+    theme = ThemeMapping(
+        event_pattern="world cup",
+        tickers=["NKE"],
+        rationale="test",
+        confidence_prior=0.55,
+        approved_by_human=True,
+    )
+    occurred = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    event = Event(
+        source="sports_mock",
+        event_type="sports",
+        title="FIFA World Cup 2026 test",
+        occurred_at=occurred,
+        metadata_json={},
+        fingerprint_hash="abc-old",
+    )
+    as_of = datetime(2026, 6, 1, tzinfo=timezone.utc)
+    score = RulesScorer().score(event, theme, as_of=as_of)
+    assert score == pytest.approx(0.57, abs=0.001)
+
+
 @pytest.mark.asyncio
 async def test_suppressed_signal_no_recommendation(db_session: AsyncSession) -> None:
     theme = ThemeMapping(
