@@ -24,6 +24,7 @@ class TickerExposureRow:
     amount_usd: float
     pct_portfolio: float
     pct_ticker_cap: float
+    headroom_usd: float
 
 
 @dataclass
@@ -33,6 +34,8 @@ class PortfolioSnapshot:
     available_cash: float
     total_deployed: float
     pct_deployed: float
+    largest_position_pct: float
+    concentration_hhi: float
     sector_cap_pct: float
     max_ticker_pct: float
     open_recommendations: int
@@ -65,6 +68,10 @@ async def get_portfolio_snapshot(db: AsyncSession) -> PortfolioSnapshot:
     total_deployed = sum(ticker_amounts.values())
     available_cash = max(0.0, settings.portfolio_cash - total_deployed)
     pct_deployed = total_deployed / settings.portfolio_value if settings.portfolio_value > 0 else 0.0
+    ticker_cap_usd = settings.portfolio_value * MAX_TICKER_PCT
+    portfolio_weights = [
+        amount / settings.portfolio_value for amount in ticker_amounts.values()
+    ] if settings.portfolio_value else []
 
     ticker_exposure = [
         TickerExposureRow(
@@ -72,13 +79,11 @@ async def get_portfolio_snapshot(db: AsyncSession) -> PortfolioSnapshot:
             sector=ticker_sector(ticker),
             amount_usd=round(amount, 2),
             pct_portfolio=round(amount / settings.portfolio_value, 4) if settings.portfolio_value else 0.0,
-            pct_ticker_cap=round(amount / (settings.portfolio_value * MAX_TICKER_PCT), 4)
-            if settings.portfolio_value
-            else 0.0,
+            pct_ticker_cap=round(amount / ticker_cap_usd, 4) if ticker_cap_usd else 0.0,
+            headroom_usd=round(max(0.0, ticker_cap_usd - amount), 2),
         )
         for ticker, amount in sorted(ticker_amounts.items(), key=lambda item: item[1], reverse=True)
     ]
-
     sector_exposure = {
         sector: round(amount / settings.portfolio_value, 4) if settings.portfolio_value else 0.0
         for sector, amount in sorted(sector_amounts.items(), key=lambda item: item[1], reverse=True)
@@ -90,6 +95,8 @@ async def get_portfolio_snapshot(db: AsyncSession) -> PortfolioSnapshot:
         available_cash=round(available_cash, 2),
         total_deployed=round(total_deployed, 2),
         pct_deployed=round(pct_deployed, 4),
+        largest_position_pct=max(portfolio_weights, default=0.0),
+        concentration_hhi=sum(weight**2 for weight in portfolio_weights),
         sector_cap_pct=settings.sector_cap_pct,
         max_ticker_pct=MAX_TICKER_PCT,
         open_recommendations=len(rows),

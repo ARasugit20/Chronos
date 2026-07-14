@@ -35,8 +35,8 @@ export function PortfolioRisk() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Available cash" value={`$${data.available_cash.toFixed(2)}`} />
         <MetricCard label="Deployed" value={`$${data.total_deployed.toFixed(2)} (${pct(data.pct_deployed)})`} />
-        <MetricCard label="Ticker cap" value={pct(data.max_ticker_pct)} />
-        <MetricCard label="Sector cap" value={pct(data.sector_cap_pct)} />
+        <MetricCard label="Largest position" value={pct(data.largest_position_pct)} />
+        <MetricCard label="Concentration HHI" value={data.concentration_hhi.toFixed(3)} />
       </div>
 
       {data.ticker_exposure.length > 0 && (
@@ -51,6 +51,7 @@ export function PortfolioRisk() {
                   <th className="p-2">Amount</th>
                   <th className="p-2">% Portfolio</th>
                   <th className="p-2">Cap used</th>
+                  <th className="p-2">Headroom</th>
                 </tr>
               </thead>
               <tbody>
@@ -63,6 +64,7 @@ export function PortfolioRisk() {
                     <td className="p-2">
                       <CapBar value={Math.min(row.pct_ticker_cap, 1)} />
                     </td>
+                    <td className="p-2">${row.headroom_usd.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -84,9 +86,10 @@ export function PortfolioRisk() {
         </div>
       )}
 
-      {data.paper_trading_mode && (
-        <p className="text-xs text-slate-500">Paper trading mode — allocations are research-only.</p>
-      )}
+      <p className="text-xs text-slate-500">
+        Limits: {pct(data.max_ticker_pct)} per ticker · {pct(data.sector_cap_pct)} per sector
+        {data.paper_trading_mode ? " · paper mode" : ""}
+      </p>
     </section>
   );
 }

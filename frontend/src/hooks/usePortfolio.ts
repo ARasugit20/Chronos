@@ -7,6 +7,7 @@ export interface TickerExposure {
   amount_usd: number;
   pct_portfolio: number;
   pct_ticker_cap: number;
+  headroom_usd: number;
 }
 
 export interface PortfolioSnapshot {
@@ -15,6 +16,8 @@ export interface PortfolioSnapshot {
   available_cash: number;
   total_deployed: number;
   pct_deployed: number;
+  largest_position_pct: number;
+  concentration_hhi: number;
   sector_cap_pct: number;
   max_ticker_pct: number;
   open_recommendations: number;

@@ -17,6 +17,7 @@ class TickerExposureSchema(BaseModel):
     amount_usd: float
     pct_portfolio: float
     pct_ticker_cap: float
+    headroom_usd: float
 
 
 class PortfolioResponse(BaseModel):
@@ -25,6 +26,8 @@ class PortfolioResponse(BaseModel):
     available_cash: float
     total_deployed: float
     pct_deployed: float
+    largest_position_pct: float
+    concentration_hhi: float
     sector_cap_pct: float
     max_ticker_pct: float
     open_recommendations: int
@@ -44,6 +47,8 @@ async def get_portfolio(db: AsyncSession = Depends(get_db_session)) -> Portfolio
         available_cash=snapshot.available_cash,
         total_deployed=snapshot.total_deployed,
         pct_deployed=snapshot.pct_deployed,
+        largest_position_pct=snapshot.largest_position_pct,
+        concentration_hhi=snapshot.concentration_hhi,
         sector_cap_pct=snapshot.sector_cap_pct,
         max_ticker_pct=snapshot.max_ticker_pct,
         open_recommendations=snapshot.open_recommendations,
