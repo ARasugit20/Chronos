@@ -1,4 +1,5 @@
 import { PipelineViz } from "../components/PipelineViz/PipelineViz";
+import { PortfolioRisk } from "../components/PortfolioRisk/PortfolioRisk";
 import { RecommendationList } from "../components/RecommendationCard/RecommendationCard";
 import { ResearchQuality } from "../components/ResearchQuality/ResearchQuality";
 import { SignalFeed } from "../components/SignalFeed/SignalFeed";
@@ -9,6 +10,7 @@ export function Dashboard() {
     <div className="space-y-8">
       <SystemStatus />
       <ResearchQuality />
+      <PortfolioRisk />
       <PipelineViz />
       <SignalFeed />
       <section aria-labelledby="rec-heading">
