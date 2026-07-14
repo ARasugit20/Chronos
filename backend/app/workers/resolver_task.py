@@ -9,7 +9,7 @@ from app.config import get_settings
 from app.database import SessionLocal
 from app.models.outcome import Outcome
 from app.models.recommendation import Recommendation
-from app.prices.price_service import get_price
+from app.prices.price_service import HistoricalPriceUnavailableError, get_price
 
 logger = structlog.get_logger(__name__)
 
@@ -31,7 +31,13 @@ async def resolve_expired() -> int:
             await db.execute(
                 select(Recommendation)
                 .options(selectinload(Recommendation.signal))
-                .where(Recommendation.status == "approved", Recommendation.expires_at < now)
+                .outerjoin(Outcome, Outcome.recommendation_id == Recommendation.id)
+                .where(
+                    Recommendation.status == "approved",
+                    Recommendation.expires_at < now,
+                    Outcome.id.is_(None),
+                )
+                .with_for_update(skip_locked=True)
             )
         ).scalars().all()
 
@@ -42,8 +48,17 @@ async def resolve_expired() -> int:
 
             signal_at = _as_utc(signal.created_at)
             expiry_at = _as_utc(rec.expires_at)
-            price_at_signal = await get_price(signal.ticker, signal_at)
-            price_at_expiry = await get_price(signal.ticker, expiry_at)
+            try:
+                price_at_signal = await get_price(signal.ticker, signal_at)
+                price_at_expiry = await get_price(signal.ticker, expiry_at)
+            except HistoricalPriceUnavailableError as exc:
+                logger.warning(
+                    "resolver.price_unavailable",
+                    recommendation_id=str(rec.id),
+                    ticker=signal.ticker,
+                    error=str(exc),
+                )
+                continue
             if price_at_signal == 0:
                 logger.warning("resolver.zero_entry_price", recommendation_id=str(rec.id), ticker=signal.ticker)
                 continue

@@ -24,6 +24,10 @@ except Exception:  # noqa: BLE001
     price_fetches_total = None
 
 
+class HistoricalPriceUnavailableError(RuntimeError):
+    pass
+
+
 def _as_of_date(as_of: date | datetime | None) -> date:
     if as_of is None:
         return date.today()
@@ -52,6 +56,16 @@ async def get_price(ticker: str, as_of: date | datetime | None = None) -> Decima
                 return Decimal(str(value))
         except PriceUnavailableError as exc:
             logger.warning("price.polygon_unavailable", ticker=ticker, as_of=price_date.isoformat(), error=str(exc))
+
+    production_requires_live_price = (
+        settings.environment == "production"
+        and settings.price_source != "mock"
+        and not settings.allow_mock_price_fallback
+    )
+    if production_requires_live_price:
+        raise HistoricalPriceUnavailableError(
+            f"no live historical price for {ticker} at {price_date.isoformat()}"
+        )
 
     if price_fetches_total:
         price_fetches_total.labels(source="mock").inc()

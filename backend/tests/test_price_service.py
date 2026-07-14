@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.prices.price_service import get_price
+from app.prices.price_service import HistoricalPriceUnavailableError, get_price
 
 
 @pytest.mark.asyncio
@@ -40,3 +40,15 @@ async def test_mock_price_differs_across_dates() -> None:
         entry = await get_price("AAPL", datetime(2026, 6, 1, tzinfo=timezone.utc))
         exit_price = await get_price("AAPL", datetime(2026, 6, 4, tzinfo=timezone.utc))
     assert entry != exit_price
+
+
+@pytest.mark.asyncio
+async def test_production_price_lookup_can_fail_closed() -> None:
+    with patch("app.prices.price_service.get_settings") as settings_mock:
+        settings = settings_mock.return_value
+        settings.polygon_api_key = ""
+        settings.environment = "production"
+        settings.price_source = "polygon"
+        settings.allow_mock_price_fallback = False
+        with pytest.raises(HistoricalPriceUnavailableError, match="AAPL"):
+            await get_price("AAPL", date(2026, 6, 1))
