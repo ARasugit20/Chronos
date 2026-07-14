@@ -8,7 +8,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy import text
 from starlette.responses import Response
 
-from app.api import audit, auth, backtest, events, recommendations, signals
+from app.api import audit, auth, backtest, events, portfolio, recommendations, signals
 from app.database import SessionLocal
 from app.metrics import (
     ingest_stale_gauge,
@@ -72,6 +72,7 @@ def create_app() -> FastAPI:
     app.include_router(recommendations.router)
     app.include_router(audit.router)
     app.include_router(backtest.router)
+    app.include_router(portfolio.router)
     app.include_router(signal_ws.router)
 
     if not _metrics_instrumented:
