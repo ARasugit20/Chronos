@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from collections.abc import Sequence
+import math
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,9 +24,40 @@ class OutcomeMetricsResult:
     mean_brier: float
     precision_by_ticker: dict[str, float]
     bucket_reliability: dict[str, dict[str, float]]
+    mean_return_pct: float
+    return_volatility: float
+    max_drawdown_pct: float
+    calibration_error: float
+    hit_rate_ci95: tuple[float, float]
+    rolling_30: dict[str, float]
     ml_ready: bool
     paper_trading: bool
     note: str
+
+
+def wilson_interval(hits: int, total: int, z: float = 1.96) -> tuple[float, float]:
+    if total == 0:
+        return (0.0, 0.0)
+    proportion = hits / total
+    denominator = 1 + z**2 / total
+    center = (proportion + z**2 / (2 * total)) / denominator
+    margin = (
+        z
+        * math.sqrt(proportion * (1 - proportion) / total + z**2 / (4 * total**2))
+        / denominator
+    )
+    return (max(0.0, center - margin), min(1.0, center + margin))
+
+
+def maximum_drawdown(returns: Sequence[float]) -> float:
+    equity = 1.0
+    peak = 1.0
+    max_drawdown = 0.0
+    for value in returns:
+        equity *= 1 + value
+        peak = max(peak, equity)
+        max_drawdown = max(max_drawdown, (peak - equity) / peak)
+    return max_drawdown
 
 
 def _bucket_reliability(rows: Sequence[Outcome]) -> dict[str, dict[str, float]]:
@@ -74,6 +106,12 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
             mean_brier=0.0,
             precision_by_ticker={},
             bucket_reliability={},
+            mean_return_pct=0.0,
+            return_volatility=0.0,
+            max_drawdown_pct=0.0,
+            calibration_error=0.0,
+            hit_rate_ci95=(0.0, 0.0),
+            rolling_30={"samples": 0.0, "hit_rate": 0.0, "mean_brier": 0.0},
             ml_ready=False,
             paper_trading=True,
             note="Reports realized outcomes only; not a point-in-time historical replay.",
@@ -81,6 +119,7 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
 
     hits = [1 if row.hit_boolean else 0 for row in rows]
     briers = [float(row.brier_component) for row in rows]
+    returns = [float(row.realized_return_pct) for row in rows]
     ticker_hits: dict[str, list[int]] = {}
 
     for row in rows:
@@ -95,6 +134,17 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
         for ticker, vals in ticker_hits.items()
         if len(vals) >= 3
     }
+    mean_return = sum(returns) / len(returns)
+    variance = sum((value - mean_return) ** 2 for value in returns) / len(returns)
+    reliability = _bucket_reliability(rows)
+    calibration_error = (
+        sum(values["calibration_gap"] * values["samples"] for values in reliability.values())
+        / len(rows)
+        if rows
+        else 0.0
+    )
+    recent_hits = hits[:30]
+    recent_briers = briers[:30]
 
     return OutcomeMetricsResult(
         methodology="resolved_outcome_metrics",
@@ -102,7 +152,17 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
         hit_rate=sum(hits) / len(hits),
         mean_brier=sum(briers) / len(briers),
         precision_by_ticker=precision,
-        bucket_reliability=_bucket_reliability(rows),
+        bucket_reliability=reliability,
+        mean_return_pct=mean_return,
+        return_volatility=math.sqrt(variance),
+        max_drawdown_pct=maximum_drawdown(list(reversed(returns))),
+        calibration_error=calibration_error,
+        hit_rate_ci95=wilson_interval(sum(hits), len(hits)),
+        rolling_30={
+            "samples": float(len(recent_hits)),
+            "hit_rate": sum(recent_hits) / len(recent_hits),
+            "mean_brier": sum(recent_briers) / len(recent_briers),
+        },
         ml_ready=len(rows) >= ml_min_outcomes,
         paper_trading=True,
         note="Reports realized outcomes only; not a point-in-time historical replay.",

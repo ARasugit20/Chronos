@@ -38,14 +38,26 @@ export function ResearchQuality() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Resolved outcomes" value={String(data.total_resolved)} />
-        <MetricCard label="Hit rate" value={pct(data.hit_rate)} />
+        <MetricCard
+          label="Hit rate (95% CI)"
+          value={`${pct(data.hit_rate)} · ${pct(data.hit_rate_ci95[0])}–${pct(data.hit_rate_ci95[1])}`}
+        />
         <MetricCard label="Mean Brier" value={data.mean_brier.toFixed(3)} />
         <MetricCard
           label="Model ready"
           value={data.ml_ready ? "Yes" : "Collecting data"}
           highlight={data.ml_ready}
         />
+        <MetricCard label="Mean return" value={pct(data.mean_return_pct)} />
+        <MetricCard label="Return volatility" value={pct(data.return_volatility)} />
+        <MetricCard label="Max drawdown" value={pct(data.max_drawdown_pct)} />
+        <MetricCard label="Calibration error" value={pct(data.calibration_error)} />
       </div>
+
+      <p className="text-xs text-slate-600">
+        Rolling 30: {data.rolling_30.samples} outcomes · {pct(data.rolling_30.hit_rate)} hit rate ·{" "}
+        {data.rolling_30.mean_brier.toFixed(3)} Brier
+      </p>
 
       {Object.keys(data.bucket_reliability).length > 0 && (
         <div>

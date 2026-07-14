@@ -32,6 +32,12 @@ class OutcomeMetricsResponse(BaseModel):
     mean_brier: float
     precision_by_ticker: dict[str, float]
     bucket_reliability: dict[str, BucketReliability]
+    mean_return_pct: float
+    return_volatility: float
+    max_drawdown_pct: float
+    calibration_error: float
+    hit_rate_ci95: tuple[float, float]
+    rolling_30: dict[str, float]
     ml_ready: bool
     paper_trading: bool
     note: str
@@ -85,6 +91,12 @@ def _to_response(result, *, settings) -> OutcomeMetricsResponse:
             bucket: BucketReliability(**values)
             for bucket, values in result.bucket_reliability.items()
         },
+        mean_return_pct=result.mean_return_pct,
+        return_volatility=result.return_volatility,
+        max_drawdown_pct=result.max_drawdown_pct,
+        calibration_error=result.calibration_error,
+        hit_rate_ci95=result.hit_rate_ci95,
+        rolling_30=result.rolling_30,
         ml_ready=result.ml_ready,
         paper_trading=settings.paper_trading_mode,
         note=result.note,
