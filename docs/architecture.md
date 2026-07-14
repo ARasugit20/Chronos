@@ -17,6 +17,7 @@
 - Retraining uses a **time-ordered train/calibrate/test split** to reduce leakage.
 - `/api/v1/outcome-metrics` reports realized outcome quality; it does not replay historical point-in-time features/prices.
 - Paper trading can auto-approve a shadow track so outcomes remain resolvable without manual clicks.
+- Portfolio exposure is computed from open buy/paper_buy recommendations against configured cash and cap limits.
 
 ## Data model
 

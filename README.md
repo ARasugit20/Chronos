@@ -164,8 +164,10 @@ See [docs/render-deploy-checklist.md](docs/render-deploy-checklist.md) for the f
 | Method | Path | Purpose |
 |--------|------|---------|
 | `POST` | `/api/v1/events/ingest` | Ingest event (dedup) |
-| `GET` | `/api/v1/signals/live` | Live signals (`offset`, `limit`) |
+| `GET` | `/api/v1/signals/live` | Live signals (cursor pagination) |
 | `GET` | `/api/v1/recommendations` | List recommendations |
+| `GET` | `/api/v1/outcome-metrics` | Resolved outcome quality metrics |
+| `GET` | `/api/v1/portfolio` | Portfolio cash, exposure, and cap utilization |
 | `POST` | `/api/v1/recommendations/{id}/approve` | Approve trade signal |
 | `GET` | `/api/v1/audit/{id}` | Full provenance chain |
 

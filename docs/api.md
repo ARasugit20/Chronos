@@ -31,7 +31,7 @@ Interactive docs: `/docs` (Swagger UI)
 |-------|---------|-------------|
 | `suppressed` | `false` | Include suppressed signals |
 | `limit` | `20` | Page size (max 100) |
-| `offset` | `0` | Pagination offset |
+| `cursor` | — | Cursor UUID for next page |
 
 ## Recommendations
 
@@ -40,8 +40,8 @@ Interactive docs: `/docs` (Swagger UI)
 | Query | Default | Description |
 |-------|---------|-------------|
 | `status` | `pending` | Filter by status |
-| `limit` | `10` | Page size |
-| `offset` | `0` | Pagination offset |
+| `limit` | `50` | Page size |
+| `cursor` | — | Cursor UUID for next page |
 
 ### `POST /api/v1/recommendations/{id}/approve`
 
@@ -73,6 +73,12 @@ This endpoint reports realized outcomes only. It is **not** a point-in-time hist
 ### `GET /api/v1/backtest` (deprecated)
 
 Compatibility alias for `/api/v1/outcome-metrics`.
+
+## Portfolio
+
+### `GET /api/v1/portfolio`
+
+Returns cash, deployment, ticker/sector exposure, and cap utilization for open buy/paper_buy recommendations.
 
 ## Health & metrics
 

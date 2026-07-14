@@ -21,6 +21,9 @@
 - [x] Temporal train/calibrate/test retrain split
 - [x] Outcome metrics API + research dashboard
 - [x] Alembic migration validation in CI
+- [x] Portfolio exposure API + risk dashboard panel
+- [x] Point-in-time rules scoring (`as_of`) for replay-safe recency
+- [x] Drawdown guard wired into live allocation path
 
 ## Next
 
