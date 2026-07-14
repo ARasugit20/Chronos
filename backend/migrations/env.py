@@ -5,7 +5,7 @@ from sqlalchemy import engine_from_config, pool
 
 from app.config import get_settings
 from app.database import Base
-from app.models import Event, Outcome, Recommendation, Signal, ThemeMapping  # noqa: F401
+from app.models import Event, ModelRun, Outcome, Recommendation, Signal, ThemeMapping  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

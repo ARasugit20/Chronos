@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 import structlog
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from app.models.outcome import Outcome
 from app.models.recommendation import Recommendation
 from app.models.signal import Signal
 from app.pipeline.calibrator import IsotonicCalibrator
-from app.pipeline.features import extract_features, features_to_vector
+from app.pipeline.features import extract_features, feature_schema_hash, features_to_vector
 from app.pipeline.scorer import LightGBMScorer
 from app.pipeline.temporal_split import split_by_time
 
@@ -28,6 +29,9 @@ class RetrainReport:
     train_brier: float | None
     oos_hit_rate: float | None
     oos_brier: float | None
+    dataset_start_at: datetime | None
+    dataset_cutoff_at: datetime | None
+    feature_schema_hash: str
 
 
 def _outcome_rows(rows: list[Outcome]) -> tuple[list[list[float]], list[int], list[float], list[int]]:
@@ -72,6 +76,9 @@ async def run_model_retrain() -> RetrainReport:
             train_brier=None,
             oos_hit_rate=None,
             oos_brier=None,
+            dataset_start_at=rows[0].resolved_at if rows else None,
+            dataset_cutoff_at=rows[-1].resolved_at if rows else None,
+            feature_schema_hash=feature_schema_hash(),
         )
 
     split = split_by_time(list(rows), sort_key=lambda row: row.resolved_at)
@@ -101,6 +108,9 @@ async def run_model_retrain() -> RetrainReport:
         train_brier=train_brier,
         oos_hit_rate=oos_hit_rate,
         oos_brier=oos_brier,
+        dataset_start_at=rows[0].resolved_at,
+        dataset_cutoff_at=rows[-1].resolved_at,
+        feature_schema_hash=feature_schema_hash(),
     )
     logger.info("retrain.completed", **report.__dict__)
     return report

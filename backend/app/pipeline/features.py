@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 
 from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping
@@ -16,6 +18,20 @@ SOURCE_TRUST: dict[str, float] = {
 }
 
 DOLLAR_RE = re.compile(r"\$[\d,]+")
+FEATURE_NAMES = (
+    "hour_of_day",
+    "day_of_week",
+    "source_trust",
+    "title_length",
+    "has_dollar_amount",
+    "keyword_count",
+    "days_to_expiry",
+)
+
+
+def feature_schema_hash() -> str:
+    payload = json.dumps(FEATURE_NAMES, separators=(",", ":"))
+    return hashlib.sha256(payload.encode()).hexdigest()
 
 
 def extract_features(
