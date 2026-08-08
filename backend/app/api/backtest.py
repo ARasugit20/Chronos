@@ -25,6 +25,14 @@ class BucketReliability(BaseModel):
     calibration_gap: float
 
 
+class BreakdownStatsResponse(BaseModel):
+    samples: int
+    hit_rate: float
+    mean_brier: float
+    expectancy: float
+    profit_factor: float
+
+
 class OutcomeMetricsResponse(BaseModel):
     methodology: str
     total_resolved: int
@@ -42,6 +50,14 @@ class OutcomeMetricsResponse(BaseModel):
     paper_trading: bool
     note: str
     disclaimer: str
+    expectancy: float = 0.0
+    profit_factor: float = 0.0
+    mean_win_pct: float = 0.0
+    mean_loss_pct: float = 0.0
+    by_confidence_bucket: dict[str, BreakdownStatsResponse] = Field(default_factory=dict)
+    by_theme_bucket: dict[str, BreakdownStatsResponse] = Field(default_factory=dict)
+    by_regime: dict[str, BreakdownStatsResponse] = Field(default_factory=dict)
+    sector_contribution: dict[str, float] = Field(default_factory=dict)
 
 
 class BacktestResponse(OutcomeMetricsResponse):
@@ -80,6 +96,19 @@ class ReplayResponse(BaseModel):
     max_drawdown_pct: float
 
 
+def _breakdown_to_response(data: dict) -> dict[str, BreakdownStatsResponse]:
+    return {
+        key: BreakdownStatsResponse(
+            samples=stats.samples,
+            hit_rate=stats.hit_rate,
+            mean_brier=stats.mean_brier,
+            expectancy=stats.expectancy,
+            profit_factor=stats.profit_factor,
+        )
+        for key, stats in data.items()
+    }
+
+
 def _to_response(result, *, settings) -> OutcomeMetricsResponse:
     return OutcomeMetricsResponse(
         methodology=result.methodology,
@@ -101,6 +130,14 @@ def _to_response(result, *, settings) -> OutcomeMetricsResponse:
         paper_trading=settings.paper_trading_mode,
         note=result.note,
         disclaimer=settings.research_disclaimer,
+        expectancy=result.expectancy,
+        profit_factor=result.profit_factor,
+        mean_win_pct=result.mean_win_pct,
+        mean_loss_pct=result.mean_loss_pct,
+        by_confidence_bucket=_breakdown_to_response(result.by_confidence_bucket),
+        by_theme_bucket=_breakdown_to_response(result.by_theme_bucket),
+        by_regime=_breakdown_to_response(result.by_regime),
+        sector_contribution=result.sector_contribution,
     )
 
 

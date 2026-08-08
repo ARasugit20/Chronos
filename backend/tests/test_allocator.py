@@ -1,6 +1,7 @@
 import pytest
 
 from app.pipeline import allocator
+from app.pipeline.regime import Regime, RegimeSnapshot
 
 
 @pytest.fixture(autouse=True)
@@ -69,3 +70,31 @@ def test_drawdown_guard_reduces_allocation() -> None:
         recent_hits=[False, False, False, True, False],
     )
     assert guarded.amount_usd <= base.amount_usd
+
+
+def test_regime_delever_reduces_size() -> None:
+    regime = RegimeSnapshot(
+        primary=Regime.RISK_OFF_GEO,
+        flags=("oil_geo_shock",),
+        kelly_fraction_override=1 / 3,
+    )
+    base = allocator.compute_allocation(
+        probability=0.65,
+        available_cash=10_000.0,
+        existing_positions={},
+        portfolio_value=50_000.0,
+        ticker="XOM",
+        sector="energy",
+    )
+    delevered = allocator.compute_allocation(
+        probability=0.65,
+        available_cash=10_000.0,
+        existing_positions={},
+        portfolio_value=50_000.0,
+        ticker="XOM",
+        sector="energy",
+        regime=regime,
+    )
+    assert delevered.amount_usd <= base.amount_usd
+    assert delevered.adjustment_reason is not None
+    assert "regime" in delevered.adjustment_reason

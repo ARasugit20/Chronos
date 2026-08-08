@@ -1,4 +1,5 @@
 import { useOutcomeMetrics, type BucketReliability } from "../../hooks/useOutcomeMetrics";
+import { ReliabilityBar } from "../ui/ReliabilityBar";
 
 function pct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
@@ -54,6 +55,16 @@ export function ResearchQuality() {
         <MetricCard label="Calibration error" value={pct(data.calibration_error)} />
       </div>
 
+      <div>
+        <h3 className="mb-2 text-sm font-semibold">Profit Quality</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard label="Expectancy" value={pct(data.expectancy)} />
+          <MetricCard label="Profit factor" value={data.profit_factor.toFixed(2)} />
+          <MetricCard label="Mean win" value={pct(data.mean_win_pct)} />
+          <MetricCard label="Mean loss" value={pct(data.mean_loss_pct)} />
+        </div>
+      </div>
+
       <p className="text-xs text-slate-600">
         Rolling 30: {data.rolling_30.samples} outcomes · {pct(data.rolling_30.hit_rate)} hit rate ·{" "}
         {data.rolling_30.mean_brier.toFixed(3)} Brier
@@ -62,7 +73,17 @@ export function ResearchQuality() {
       {Object.keys(data.bucket_reliability).length > 0 && (
         <div>
           <h3 className="mb-2 text-sm font-semibold">Confidence bucket reliability</h3>
-          <div className="overflow-x-auto rounded border">
+          <div className="space-y-3">
+            {bucketRows.map(([bucket, stats]) => (
+              <ReliabilityBar
+                key={bucket}
+                label={bucket}
+                predicted={stats.mean_predicted}
+                observed={stats.observed_hit_rate}
+              />
+            ))}
+          </div>
+          <div className="mt-3 overflow-x-auto rounded border">
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-100">
                 <tr>
@@ -89,6 +110,25 @@ export function ResearchQuality() {
         </div>
       )}
 
+      {Object.keys(data.by_theme_bucket).length > 0 && (
+        <BreakdownTable title="By theme bucket" rows={data.by_theme_bucket} />
+      )}
+      {Object.keys(data.by_regime).length > 0 && (
+        <BreakdownTable title="By regime" rows={data.by_regime} />
+      )}
+      {Object.keys(data.sector_contribution).length > 0 && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold">Sector contribution</h3>
+          <ul className="flex flex-wrap gap-2">
+            {Object.entries(data.sector_contribution).map(([sector, value]) => (
+              <li key={sector} className="rounded-full bg-slate-100 px-3 py-1 text-xs">
+                {sector}: {pct(value)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {topTickers.length > 0 && (
         <div>
           <h3 className="mb-2 text-sm font-semibold">Ticker precision (n≥3)</h3>
@@ -106,6 +146,44 @@ export function ResearchQuality() {
         <p className="text-xs text-slate-500">Paper trading mode is active — outcomes use the shadow approval track.</p>
       )}
     </section>
+  );
+}
+
+function BreakdownTable({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Record<string, { samples: number; hit_rate: number; expectancy: number; profit_factor: number }>;
+}) {
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-semibold">{title}</h3>
+      <div className="overflow-x-auto rounded border">
+        <table className="min-w-full text-left text-sm">
+          <thead className="bg-slate-100">
+            <tr>
+              <th className="p-2">Key</th>
+              <th className="p-2">Samples</th>
+              <th className="p-2">Hit rate</th>
+              <th className="p-2">Expectancy</th>
+              <th className="p-2">Profit factor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(rows).map(([key, stats]) => (
+              <tr key={key} className="border-t">
+                <td className="p-2 font-medium">{key}</td>
+                <td className="p-2">{stats.samples}</td>
+                <td className="p-2">{pct(stats.hit_rate)}</td>
+                <td className="p-2">{pct(stats.expectancy)}</td>
+                <td className="p-2">{stats.profit_factor.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 

@@ -24,10 +24,16 @@
 - [x] Portfolio exposure API + risk dashboard panel
 - [x] Point-in-time rules scoring (`as_of`) for replay-safe recency
 - [x] Drawdown guard wired into live allocation path
+- [x] RegimeTagger + lead schema (thesis, invalidate_if, rank_score, regime)
+- [x] EdgeModel with theme-history shrinkage
+- [x] LeadRanker (EV/risk, cluster dedupe, top-K/day)
+- [x] Regime-aware allocator delever + adjustment_reason
+- [x] Profit-quality analytics (expectancy, profit factor, theme/regime breakdowns)
 
 ## Next
 
-- [ ] Point-in-time historical replay backtest engine
+- [ ] Point-in-time historical replay backtest engine (credibility gate for notify/high-quality badge)
+- [ ] Optional webhook/email delivery stub behind replay gates
 - [ ] Demo GIF in README
 - [ ] pgvector for production embeddings
 - [ ] Horizontal Celery autoscaling

@@ -24,6 +24,32 @@ class AuditResponse(BaseModel):
     outcome: dict | None
 
 
+def _rec_schema(rec: Recommendation, signal: Signal) -> RecommendationSchema:
+    return RecommendationSchema(
+        id=rec.id,
+        signal_id=rec.signal_id,
+        action=rec.action,
+        amount_usd=rec.amount_usd,
+        pct_cash=rec.pct_cash,
+        expires_at=rec.expires_at,
+        reason=rec.reason,
+        status=rec.status,
+        disclaimer=rec.disclaimer,
+        created_at=rec.created_at,
+        model_version=signal.model_version,
+        theme_bucket=rec.theme_bucket,
+        regime=rec.regime,
+        regime_flags=rec.regime_flags or [],
+        calibrated_p=rec.calibrated_p,
+        thesis=rec.thesis,
+        invalidate_if=rec.invalidate_if,
+        evidence=rec.evidence or [],
+        rank_score=rec.rank_score,
+        kelly_half_pct=rec.kelly_half_pct,
+        adjustment_reason=rec.adjustment_reason,
+    )
+
+
 @router.get("/{recommendation_id}", response_model=AuditResponse)
 async def audit_trail(
     recommendation_id: UUID,
@@ -47,19 +73,7 @@ async def audit_trail(
     outcome: Outcome | None = rec.outcome
 
     return AuditResponse(
-        recommendation=RecommendationSchema(
-            id=rec.id,
-            signal_id=rec.signal_id,
-            action=rec.action,
-            amount_usd=rec.amount_usd,
-            pct_cash=rec.pct_cash,
-            expires_at=rec.expires_at,
-            reason=rec.reason,
-            status=rec.status,
-            disclaimer=rec.disclaimer,
-            created_at=rec.created_at,
-            model_version=signal.model_version,
-        ),
+        recommendation=_rec_schema(rec, signal),
         signal=SignalSchema(
             id=signal.id,
             event_id=signal.event_id,

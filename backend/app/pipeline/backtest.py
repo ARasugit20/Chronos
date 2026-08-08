@@ -2,18 +2,28 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 from collections.abc import Sequence
 import math
+from dataclasses import dataclass, field
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.config import get_settings
 from app.models.outcome import Outcome
 from app.models.recommendation import Recommendation
 from app.models.signal import Signal
+from app.pipeline.sectors import ticker_sector
+
+
+@dataclass
+class BreakdownStats:
+    samples: int = 0
+    hit_rate: float = 0.0
+    mean_brier: float = 0.0
+    expectancy: float = 0.0
+    profit_factor: float = 0.0
 
 
 @dataclass
@@ -33,6 +43,14 @@ class OutcomeMetricsResult:
     ml_ready: bool
     paper_trading: bool
     note: str
+    expectancy: float = 0.0
+    profit_factor: float = 0.0
+    mean_win_pct: float = 0.0
+    mean_loss_pct: float = 0.0
+    by_confidence_bucket: dict[str, BreakdownStats] = field(default_factory=dict)
+    by_theme_bucket: dict[str, BreakdownStats] = field(default_factory=dict)
+    by_regime: dict[str, BreakdownStats] = field(default_factory=dict)
+    sector_contribution: dict[str, float] = field(default_factory=dict)
 
 
 def wilson_interval(hits: int, total: int, z: float = 1.96) -> tuple[float, float]:
@@ -58,6 +76,21 @@ def maximum_drawdown(returns: Sequence[float]) -> float:
         peak = max(peak, equity)
         max_drawdown = max(max_drawdown, (peak - equity) / peak)
     return max_drawdown
+
+
+def _profit_metrics(returns: Sequence[float], hits: Sequence[int]) -> tuple[float, float, float, float]:
+    if not returns:
+        return (0.0, 0.0, 0.0, 0.0)
+    expectancy = sum(returns) / len(returns)
+    wins = [r for r in returns if r > 0]
+    losses = [r for r in returns if r < 0]
+    mean_win = sum(wins) / len(wins) if wins else 0.0
+    mean_loss = sum(losses) / len(losses) if losses else 0.0
+    gross_win = sum(wins)
+    gross_loss = abs(sum(losses))
+    profit_factor = (gross_win / gross_loss) if gross_loss > 0 else (gross_win if gross_win > 0 else 0.0)
+    _ = hits
+    return expectancy, profit_factor, mean_win, mean_loss
 
 
 def _bucket_reliability(rows: Sequence[Outcome]) -> dict[str, dict[str, float]]:
@@ -86,7 +119,46 @@ def _bucket_reliability(rows: Sequence[Outcome]) -> dict[str, dict[str, float]]:
     return reliability
 
 
+def _breakdown(rows: Sequence[Outcome], key_fn) -> dict[str, BreakdownStats]:
+    grouped: dict[str, list[Outcome]] = {}
+    for row in rows:
+        rec = row.recommendation
+        if rec is None:
+            continue
+        key = key_fn(rec)
+        if key is None:
+            continue
+        grouped.setdefault(key, []).append(row)
+
+    result: dict[str, BreakdownStats] = {}
+    for key, group in grouped.items():
+        returns = [float(r.realized_return_pct) for r in group]
+        hits = [1 if r.hit_boolean else 0 for r in group]
+        briers = [float(r.brier_component) for r in group]
+        exp, pf, _, _ = _profit_metrics(returns, hits)
+        result[key] = BreakdownStats(
+            samples=len(group),
+            hit_rate=sum(hits) / len(hits),
+            mean_brier=sum(briers) / len(briers),
+            expectancy=exp,
+            profit_factor=pf,
+        )
+    return result
+
+
+def _sector_contribution(rows: Sequence[Outcome]) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    for row in rows:
+        rec = row.recommendation
+        if rec is None or rec.signal is None:
+            continue
+        sector = ticker_sector(rec.signal.ticker)
+        totals[sector] = totals.get(sector, 0.0) + float(row.realized_return_pct)
+    return totals
+
+
 async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) -> OutcomeMetricsResult:
+    settings = get_settings()
     rows = (
         await db.execute(
             select(Outcome)
@@ -97,6 +169,8 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
             .limit(500)
         )
     ).scalars().all()
+
+    note = "Reports realized outcomes only; not a point-in-time historical replay."
 
     if not rows:
         return OutcomeMetricsResult(
@@ -113,8 +187,8 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
             hit_rate_ci95=(0.0, 0.0),
             rolling_30={"samples": 0.0, "hit_rate": 0.0, "mean_brier": 0.0},
             ml_ready=False,
-            paper_trading=True,
-            note="Reports realized outcomes only; not a point-in-time historical replay.",
+            paper_trading=settings.paper_trading_mode,
+            note=note,
         )
 
     hits = [1 if row.hit_boolean else 0 for row in rows]
@@ -145,6 +219,7 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
     )
     recent_hits = hits[:30]
     recent_briers = briers[:30]
+    expectancy, profit_factor, mean_win, mean_loss = _profit_metrics(returns, hits)
 
     return OutcomeMetricsResult(
         methodology="resolved_outcome_metrics",
@@ -164,12 +239,19 @@ async def run_outcome_metrics(db: AsyncSession, *, ml_min_outcomes: int = 50) ->
             "mean_brier": sum(recent_briers) / len(recent_briers),
         },
         ml_ready=len(rows) >= ml_min_outcomes,
-        paper_trading=True,
-        note="Reports realized outcomes only; not a point-in-time historical replay.",
+        paper_trading=settings.paper_trading_mode,
+        note=note,
+        expectancy=expectancy,
+        profit_factor=profit_factor,
+        mean_win_pct=mean_win,
+        mean_loss_pct=mean_loss,
+        by_confidence_bucket=_breakdown(rows, lambda rec: rec.signal.confidence_bucket if rec.signal else None),
+        by_theme_bucket=_breakdown(rows, lambda rec: rec.theme_bucket),
+        by_regime=_breakdown(rows, lambda rec: rec.regime),
+        sector_contribution=_sector_contribution(rows),
     )
 
 
-# Backward-compatible alias used by existing imports/tests.
 async def run_backtest(db: AsyncSession, *, ml_min_outcomes: int = 50) -> OutcomeMetricsResult:
     return await run_outcome_metrics(db, ml_min_outcomes=ml_min_outcomes)
 

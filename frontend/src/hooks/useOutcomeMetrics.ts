@@ -8,6 +8,14 @@ export interface BucketReliability {
   calibration_gap: number;
 }
 
+export interface BreakdownStats {
+  samples: number;
+  hit_rate: number;
+  mean_brier: number;
+  expectancy: number;
+  profit_factor: number;
+}
+
 export interface OutcomeMetrics {
   methodology: string;
   total_resolved: number;
@@ -29,6 +37,14 @@ export interface OutcomeMetrics {
   paper_trading: boolean;
   note: string;
   disclaimer: string;
+  expectancy: number;
+  profit_factor: number;
+  mean_win_pct: number;
+  mean_loss_pct: number;
+  by_confidence_bucket: Record<string, BreakdownStats>;
+  by_theme_bucket: Record<string, BreakdownStats>;
+  by_regime: Record<string, BreakdownStats>;
+  sector_contribution: Record<string, number>;
 }
 
 export function useOutcomeMetrics() {

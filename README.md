@@ -175,6 +175,26 @@ See [docs/api.md](docs/api.md) and [docs/architecture.md](docs/architecture.md).
 
 ---
 
+## How to read leads
+
+Chronos promotes **paper-only research leads** (default `PAPER_TRADING_MODE=true`). Each lead includes:
+
+| Field | Meaning |
+|-------|---------|
+| `calibrated_p` | Model probability after calibration — not a guarantee of profit |
+| `rank_score` | Expected value divided by risk, adjusted for regime uncertainty |
+| `thesis` | Why the event maps to the ticker under the current theme/regime |
+| `invalidate_if` | Conditions that would invalidate the lead before expiry |
+| `size_usd` / `kelly_half_pct` | Half-Kelly (or 1/3 Kelly in stressed regimes) after ticker/sector/drawdown guards |
+| `adjustment_reason` | Why size was reduced (regime delever, sector heat, August seasonality, etc.) |
+| `evidence` | Clustered headlines for the same ticker within the cluster window |
+| `expires_at` | Horizon for outcome resolution (shorter after sell-the-beat regimes) |
+| Audit id | Recommendation UUID — use `/api/v1/audit/{id}` for full provenance |
+
+**Research disclaimer:** These are research signals only, not financial advice. Profit-quality metrics on the dashboard require resolved outcomes and are not point-in-time replay proof of alpha.
+
+---
+
 ## Scalability roadmap
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for planned upgrades: JWT auth, embedding-based theme match, real price feeds, horizontal Celery workers, and fitted calibration.

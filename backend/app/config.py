@@ -44,6 +44,28 @@ class Settings(BaseSettings):
     stale_ingest_minutes: int = 15
     environment: str = "development"
 
+    # Regime-aware lead engine settings
+    max_daily_leads: int = 5
+    cluster_window_hours: int = 6
+    min_ev_usd: float = 0.0
+    caution_theme_min_confidence: float = 0.62
+    edge_min_samples: int = 20
+    edge_shrinkage_weight: float = 0.5
+    august_seasonality_enabled: bool = True
+    default_range_rotation: bool = True
+    august_risk_multiplier: float = 1.2
+    regime_risk_off_multiplier: float = 1.5
+    regime_ai_infra_multiplier: float = 1.3
+    regime_earnings_multiplier: float = 1.25
+    regime_rotation_multiplier: float = 1.0
+    regime_confidence_boost_risk_off: float = 0.05
+    regime_confidence_boost_ai_infra: float = 0.05
+    regime_confidence_boost_earnings: float = 0.03
+    regime_kelly_fraction_risk_off: float = 1 / 3
+    regime_kelly_fraction_ai_infra: float = 1 / 3
+    regime_kelly_fraction_earnings: float = 1 / 3
+    earnings_sellthebeat_horizon_hours: int = 48
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors(cls, v: object) -> list[str]:

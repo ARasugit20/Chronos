@@ -7,8 +7,8 @@ from sqlalchemy.orm import selectinload
 
 from app.auth.dependencies import get_current_user
 from app.database import get_db_session
-from app.models.recommendation import Recommendation
 from app.metrics import recommendations_actioned_total
+from app.models.recommendation import Recommendation
 from app.schemas.pagination import CursorPage
 from app.schemas.recommendation import RecommendationSchema
 
@@ -26,7 +26,7 @@ async def list_recommendations(
         select(Recommendation)
         .options(selectinload(Recommendation.signal))
         .where(Recommendation.status == status_filter)
-        .order_by(Recommendation.id.asc())
+        .order_by(Recommendation.rank_score.desc().nullslast(), Recommendation.id.asc())
     )
     if cursor is not None:
         stmt = stmt.where(Recommendation.id > cursor)
@@ -96,4 +96,14 @@ def _to_schema(rec: Recommendation) -> RecommendationSchema:
         disclaimer=rec.disclaimer,
         created_at=rec.created_at,
         model_version=rec.signal.model_version if rec.signal else "rules-v1",
+        theme_bucket=rec.theme_bucket,
+        regime=rec.regime,
+        regime_flags=rec.regime_flags or [],
+        calibrated_p=rec.calibrated_p,
+        thesis=rec.thesis,
+        invalidate_if=rec.invalidate_if,
+        evidence=rec.evidence or [],
+        rank_score=rec.rank_score,
+        kelly_half_pct=rec.kelly_half_pct,
+        adjustment_reason=rec.adjustment_reason,
     )
