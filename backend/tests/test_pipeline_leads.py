@@ -60,6 +60,85 @@ async def test_pipeline_persists_lead_fields(db_session: AsyncSession) -> None:
 
 
 @pytest.mark.asyncio
+async def test_clustered_headlines_merge_without_orphan_signal(db_session: AsyncSession) -> None:
+    db_session.add(
+        ThemeMapping(
+            event_pattern="oil price|crude oil|opec",
+            tickers=["XOM"],
+            rationale="energy supply shock",
+            confidence_prior=0.62,
+            approved_by_human=True,
+        )
+    )
+    await db_session.commit()
+
+    first_title = "OPEC cuts crude oil supply amid geopolitical tension"
+    second_title = "Crude oil price spikes on OPEC supply cut"
+
+    first_event = Event(
+        source="news_mock",
+        event_type="news",
+        title=first_title,
+        occurred_at=datetime.now(timezone.utc),
+        metadata_json={},
+        fingerprint_hash="cluster-first",
+    )
+    db_session.add(first_event)
+    await db_session.flush()
+    await process_event_signals(db_session, first_event)
+    await db_session.commit()
+
+    second_event = Event(
+        source="news_mock",
+        event_type="news",
+        title=second_title,
+        occurred_at=datetime.now(timezone.utc),
+        metadata_json={},
+        fingerprint_hash="cluster-second",
+    )
+    db_session.add(second_event)
+    await db_session.flush()
+    await process_event_signals(db_session, second_event)
+    await db_session.commit()
+
+    from sqlalchemy import func, select
+    from sqlalchemy.orm import selectinload
+
+    from app.models.recommendation import Recommendation
+    from app.models.signal import Signal
+
+    rec_count = (
+        await db_session.execute(
+            select(func.count())
+            .select_from(Recommendation)
+            .join(Signal, Recommendation.signal_id == Signal.id)
+            .where(Signal.ticker == "XOM")
+        )
+    ).scalar_one()
+    signal_count = (
+        await db_session.execute(
+            select(func.count()).select_from(Signal).where(Signal.ticker == "XOM")
+        )
+    ).scalar_one()
+
+    rec = (
+        await db_session.execute(
+            select(Recommendation)
+            .join(Signal, Recommendation.signal_id == Signal.id)
+            .options(selectinload(Recommendation.signal))
+            .where(Signal.ticker == "XOM")
+        )
+    ).scalars().first()
+
+    assert rec_count == 1
+    assert signal_count == 1
+    assert rec is not None
+    assert rec.evidence is not None
+    assert first_title in rec.evidence
+    assert second_title in rec.evidence
+
+
+@pytest.mark.asyncio
 async def test_recommendations_api_exposes_lead_fields(client: AsyncClient, db_session: AsyncSession) -> None:
     from app.config import get_settings
 

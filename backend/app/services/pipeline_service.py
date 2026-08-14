@@ -181,6 +181,33 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
                 suppressed = True
                 suppression_reason = guard_reason
 
+            if not suppressed:
+                cluster = await find_cluster(
+                    db,
+                    ticker=ticker,
+                    window_hours=settings.cluster_window_hours,
+                )
+                if cluster is not None:
+                    thesis = _build_thesis(
+                        event=event,
+                        ticker=ticker,
+                        theme_bucket=theme_bucket,
+                        regime_primary=regime_snapshot.primary.value,
+                        calibrated=calibrated,
+                    )
+                    evidence = list(cluster.evidence or []) + [event.title]
+                    cluster.evidence = evidence
+                    cluster.thesis = thesis
+                    cluster.calibrated_p = calibrated
+                    cluster.rank_score = cluster.rank_score or 0.0
+                    logger.info(
+                        "pipeline.cluster_updated",
+                        ticker=ticker,
+                        cluster_id=str(cluster.id),
+                        evidence_count=len(evidence),
+                    )
+                    continue
+
             signal = Signal(
                 event_id=event.id,
                 ticker=ticker,
@@ -243,25 +270,6 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             )
             invalidate_if = build_invalidate_if(theme_bucket, regime_snapshot, ticker)
             evidence = [event.title]
-
-            cluster = await find_cluster(
-                db,
-                ticker=ticker,
-                window_hours=settings.cluster_window_hours,
-            )
-            if cluster is not None and cluster.evidence:
-                evidence = list(cluster.evidence) + [event.title]
-                cluster.evidence = evidence
-                cluster.thesis = thesis
-                cluster.calibrated_p = calibrated
-                cluster.rank_score = cluster.rank_score or 0.0
-                logger.info(
-                    "pipeline.cluster_updated",
-                    ticker=ticker,
-                    cluster_id=str(cluster.id),
-                    evidence_count=len(evidence),
-                )
-                continue
 
             expected_value = compute_expected_value(calibrated, edge.expected_return_pct, amount_usd)
             risk = compute_risk(calibrated, amount_usd, settings.portfolio_value)
