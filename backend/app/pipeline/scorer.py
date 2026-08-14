@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Protocol
 
+import numpy as np
 import structlog
 
 from app.models.event import Event
@@ -76,7 +77,8 @@ class LightGBMScorer:
         features = extract_features(event, theme)
         vector = [features_to_vector(features)]
         try:
-            proba = self._model.predict_proba(vector)[0][1]
+            proba_matrix = np.asarray(self._model.predict_proba(vector), dtype=float)
+            proba = proba_matrix[0, 1]
             return max(0.0, min(1.0, float(proba)))
         except Exception as exc:  # noqa: BLE001
             logger.warning("scorer.predict_failed", error=str(exc))
@@ -86,7 +88,6 @@ class LightGBMScorer:
     def train(cls, X: list[list[float]], y: list[int], model_path: Path | None = None) -> float:
         import joblib
         import lightgbm as lgb
-        import numpy as np
 
         path = model_path or DEFAULT_MODEL_PATH
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,7 +99,7 @@ class LightGBMScorer:
         )
         model.fit(np.array(X), np.array(y))
         joblib.dump(model, path)
-        preds = model.predict_proba(np.array(X))[:, 1]
+        preds = np.asarray(model.predict_proba(np.array(X)), dtype=float)[:, 1]
         brier = float(np.mean((preds - np.array(y)) ** 2))
         logger.info("scorer.trained", path=str(path), brier=brier)
         return brier

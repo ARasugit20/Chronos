@@ -113,6 +113,33 @@ def test_feature_extraction_keys() -> None:
     assert "source_trust" in features
 
 
+def test_lightgbm_score_accepts_list_predict_proba_output() -> None:
+    class _ListProbaModel:
+        def predict_proba(self, vector: list[list[float]]) -> list[list[float]]:
+            _ = vector
+            return [[0.25, 0.75]]
+
+    theme = ThemeMapping(
+        event_pattern="nba",
+        tickers=["DIS"],
+        rationale="sports",
+        confidence_prior=0.58,
+        approved_by_human=True,
+    )
+    event = Event(
+        source="sports_mock",
+        event_type="sports",
+        title="NBA Finals Game 7",
+        occurred_at=datetime.now(timezone.utc),
+        metadata_json={},
+        fingerprint_hash="lgbm-list-proba",
+    )
+    scorer = LightGBMScorer(model_path="/tmp/no_such_lgbm_model.pkl")
+    scorer._model = _ListProbaModel()
+    score = scorer.score(event, theme)
+    assert score == pytest.approx(0.75)
+
+
 def test_lightgbm_fallback_without_model() -> None:
     theme = ThemeMapping(
         event_pattern="nba",
