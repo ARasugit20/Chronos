@@ -19,6 +19,11 @@ class NaiveUTCDateTime(TypeDecorator[datetime]):
             return value.astimezone(UTC).replace(tzinfo=None)
         return value
 
+
+def utc_now_naive() -> datetime:
+    """Return the current UTC time as a naive datetime for DB comparisons."""
+    return datetime.now(UTC).replace(tzinfo=None)
+
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",

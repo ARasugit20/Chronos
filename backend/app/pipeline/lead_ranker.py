@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.database import utc_now_naive
 from app.models.recommendation import Recommendation
 from app.models.signal import Signal
 from app.pipeline.regime import Regime, RegimeSnapshot
@@ -92,7 +93,7 @@ async def find_cluster(
     window_hours: int,
     now: datetime | None = None,
 ) -> Recommendation | None:
-    ts = now or datetime.now(UTC)
+    ts = now or utc_now_naive()
     cutoff = ts - timedelta(hours=window_hours)
     row = (
         await db.execute(
@@ -115,7 +116,7 @@ async def enforce_daily_cap(
     now: datetime | None = None,
 ) -> RankDecision:
     settings = get_settings()
-    ts = now or datetime.now(UTC)
+    ts = now or utc_now_naive()
     start_of_day = ts.replace(hour=0, minute=0, second=0, microsecond=0)
 
     existing = (
