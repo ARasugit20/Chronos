@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from sqlalchemy import select

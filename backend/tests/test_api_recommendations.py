@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
@@ -72,7 +72,7 @@ async def test_recommendations_include_disclaimer(client: AsyncClient, db_sessio
             "source": "manual",
             "event_type": "sports",
             "title": "FIFA World Cup 2026 ingest",
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "occurred_at": datetime.now(UTC).isoformat(),
             "metadata": {},
         },
     )

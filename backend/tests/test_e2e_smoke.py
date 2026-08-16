@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
@@ -38,7 +38,7 @@ async def test_full_smoke_flow(client: AsyncClient, db_session: AsyncSession) ->
             "source": "manual",
             "event_type": "sports",
             "title": "NBA Finals — Game 7 primetime smoke",
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "occurred_at": datetime.now(UTC).isoformat(),
             "metadata": {},
         },
     )
@@ -51,7 +51,7 @@ async def test_full_smoke_flow(client: AsyncClient, db_session: AsyncSession) ->
             "source": "manual",
             "event_type": "sports",
             "title": "NBA Finals — Game 7 primetime smoke",
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "occurred_at": datetime.now(UTC).isoformat(),
             "metadata": {},
         },
     )

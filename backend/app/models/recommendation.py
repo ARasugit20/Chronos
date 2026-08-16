@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import Float, ForeignKey, Numeric, String, func
 from sqlalchemy.dialects.postgresql import JSONB
@@ -41,5 +41,5 @@ class Recommendation(Base):
     kelly_half_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
     adjustment_reason: Mapped[str | None] = mapped_column(String, nullable=True)
 
-    signal: Mapped["Signal"] = relationship(back_populates="recommendation")
-    outcome: Mapped[Optional["Outcome"]] = relationship(back_populates="recommendation", uselist=False)
+    signal: Mapped[Signal] = relationship(back_populates="recommendation")
+    outcome: Mapped[Outcome | None] = relationship(back_populates="recommendation", uselist=False)

@@ -49,19 +49,18 @@ export function ResearchQuality() {
           value={data.ml_ready ? "Yes" : "Collecting data"}
           highlight={data.ml_ready}
         />
-        <MetricCard label="Mean return" value={pct(data.mean_return_pct)} />
-        <MetricCard label="Return volatility" value={pct(data.return_volatility)} />
-        <MetricCard label="Max drawdown" value={pct(data.max_drawdown_pct)} />
+        <MetricCard label="Outcome dispersion" value={pct(data.return_volatility)} />
+        <MetricCard label="Worst calibration streak" value={pct(data.max_drawdown_pct)} />
         <MetricCard label="Calibration error" value={pct(data.calibration_error)} />
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold">Profit Quality</h3>
+        <h3 className="mb-2 text-sm font-semibold">Calibration breakdown</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Expectancy" value={pct(data.expectancy)} />
-          <MetricCard label="Profit factor" value={data.profit_factor.toFixed(2)} />
-          <MetricCard label="Mean win" value={pct(data.mean_win_pct)} />
-          <MetricCard label="Mean loss" value={pct(data.mean_loss_pct)} />
+          <MetricCard label="Resolution margin" value={pct(data.expectancy)} />
+          <MetricCard label="Hit/miss resolution ratio" value={data.profit_factor.toFixed(2)} />
+          <MetricCard label="Mean hit magnitude" value={pct(data.mean_win_pct)} />
+          <MetricCard label="Mean miss magnitude" value={pct(data.mean_loss_pct)} />
         </div>
       </div>
 
@@ -166,8 +165,8 @@ function BreakdownTable({
               <th className="p-2">Key</th>
               <th className="p-2">Samples</th>
               <th className="p-2">Hit rate</th>
-              <th className="p-2">Expectancy</th>
-              <th className="p-2">Profit factor</th>
+              <th className="p-2">Resolution margin</th>
+              <th className="p-2">Hit/miss ratio</th>
             </tr>
           </thead>
           <tbody>

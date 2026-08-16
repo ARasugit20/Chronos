@@ -40,7 +40,7 @@ async def test_portfolio_snapshot_aggregates_exposure() -> None:
 
 @pytest.mark.asyncio
 async def test_portfolio_snapshot_reports_concentration_and_headroom() -> None:
-    rec = MagicMock(amount_usd=Decimal("2000"))
+    rec = MagicMock(amount_usd=Decimal(2000))
     signal = MagicMock(ticker="AAPL")
     result = MagicMock()
     result.all.return_value = [(rec, signal)]

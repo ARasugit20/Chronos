@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
@@ -10,7 +10,7 @@ from app.workers.resolver_task import resolve_expired
 
 @pytest.mark.asyncio
 async def test_resolver_uses_signal_and_expiry_timestamps() -> None:
-    signal_created = datetime(2026, 6, 1, 12, 0, tzinfo=timezone.utc)
+    signal_created = datetime(2026, 6, 1, 12, 0, tzinfo=UTC)
     expires_at = signal_created + timedelta(days=3)
 
     mock_signal = MagicMock()
@@ -36,10 +36,12 @@ async def test_resolver_uses_signal_and_expiry_timestamps() -> None:
     mock_session.__aenter__.return_value = mock_db
     mock_session.__aexit__.return_value = None
 
-    with patch("app.workers.resolver_task.SessionLocal", return_value=mock_session):
-        with patch("app.workers.resolver_task.get_price", new_callable=AsyncMock) as price_mock:
-            price_mock.side_effect = [Decimal("100.00"), Decimal("110.00")]
-            resolved = await resolve_expired()
+    with (
+        patch("app.workers.resolver_task.SessionLocal", return_value=mock_session),
+        patch("app.workers.resolver_task.get_price", new_callable=AsyncMock) as price_mock,
+    ):
+        price_mock.side_effect = [Decimal("100.00"), Decimal("110.00")]
+        resolved = await resolve_expired()
 
     assert resolved == 1
     assert price_mock.await_count == 2

@@ -27,4 +27,4 @@ class Outcome(Base):
     brier_component: Mapped[float] = mapped_column(nullable=False)
     data_source: Mapped[str] = mapped_column(String, nullable=False)
 
-    recommendation: Mapped["Recommendation"] = relationship(back_populates="outcome")
+    recommendation: Mapped[Recommendation] = relationship(back_populates="outcome")

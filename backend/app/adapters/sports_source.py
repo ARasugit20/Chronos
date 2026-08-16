@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
-from typing import Protocol, TypedDict
+from datetime import UTC, datetime
+from typing import ClassVar, Protocol, TypedDict
 
 
 class RawEventDict(TypedDict):
@@ -17,7 +17,7 @@ class EventSource(Protocol):
 
 
 class SportsMockSource:
-    _EVENTS = [
+    _EVENTS: ClassVar[list[str]] = [
         "FIFA World Cup 2026 — Host cities confirmed",
         "NBA Finals — Game 7 primetime",
         "Super Bowl LX — 2 weeks out",
@@ -25,13 +25,13 @@ class SportsMockSource:
     ]
 
     async def fetch(self) -> list[RawEventDict]:
-        idx = datetime.now(timezone.utc).date().toordinal() % len(self._EVENTS)
+        idx = datetime.now(UTC).date().toordinal() % len(self._EVENTS)
         return [
             {
                 "source": "sports_mock",
                 "event_type": "sports",
                 "title": self._EVENTS[idx],
-                "occurred_at": datetime.now(timezone.utc),
+                "occurred_at": datetime.now(UTC),
                 "metadata": {"data_source": "mock"},
             }
         ]

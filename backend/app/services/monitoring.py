@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import structlog
 from sqlalchemy import func, select
@@ -32,8 +32,8 @@ async def check_system_health(db: AsyncSession) -> dict[str, object]:
         ingest_stale = True
         alerts.append("no_events_ingested")
     else:
-        last_ts = last_ingest if last_ingest.tzinfo else last_ingest.replace(tzinfo=timezone.utc)
-        age = datetime.now(timezone.utc) - last_ts
+        last_ts = last_ingest if last_ingest.tzinfo else last_ingest.replace(tzinfo=UTC)
+        age = datetime.now(UTC) - last_ts
         if age > timedelta(minutes=settings.stale_ingest_minutes):
             ingest_stale = True
             alerts.append("ingest_stale")

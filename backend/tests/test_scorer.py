@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +23,7 @@ async def test_rules_scorer_recency_boost() -> None:
         source="sports_mock",
         event_type="sports",
         title="FIFA World Cup 2026 test",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="abc",
     )
@@ -39,7 +39,7 @@ def test_rules_scorer_point_in_time_no_recency_leakage() -> None:
         confidence_prior=0.55,
         approved_by_human=True,
     )
-    occurred = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    occurred = datetime(2020, 1, 1, tzinfo=UTC)
     event = Event(
         source="sports_mock",
         event_type="sports",
@@ -48,7 +48,7 @@ def test_rules_scorer_point_in_time_no_recency_leakage() -> None:
         metadata_json={},
         fingerprint_hash="abc-old",
     )
-    as_of = datetime(2026, 6, 1, tzinfo=timezone.utc)
+    as_of = datetime(2026, 6, 1, tzinfo=UTC)
     score = RulesScorer().score(event, theme, as_of=as_of)
     assert score == pytest.approx(0.57, abs=0.001)
 
@@ -67,7 +67,7 @@ async def test_suppressed_signal_no_recommendation(db_session: AsyncSession) -> 
         source="news_mock",
         event_type="news",
         title="unknown event pattern",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="def",
     )
@@ -104,7 +104,7 @@ def test_feature_extraction_keys() -> None:
         source="macro_mock",
         event_type="macro",
         title="Federal Reserve holds rates",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="feat",
     )
@@ -130,7 +130,7 @@ def test_lightgbm_score_accepts_list_predict_proba_output() -> None:
         source="sports_mock",
         event_type="sports",
         title="NBA Finals Game 7",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="lgbm-list-proba",
     )
@@ -152,7 +152,7 @@ def test_lightgbm_fallback_without_model() -> None:
         source="sports_mock",
         event_type="sports",
         title="NBA Finals Game 7",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="lgbm",
     )

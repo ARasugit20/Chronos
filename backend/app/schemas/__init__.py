@@ -5,6 +5,6 @@ from app.schemas.signal import SignalSchema
 __all__ = [
     "EventIngestRequest",
     "EventIngestResponse",
-    "SignalSchema",
     "RecommendationSchema",
+    "SignalSchema",
 ]

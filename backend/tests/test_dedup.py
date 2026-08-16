@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import func, select
@@ -13,7 +13,7 @@ from app.redis_client import get_redis
 async def test_duplicate_fingerprint(db_session: AsyncSession) -> None:
     redis = get_redis()
     await redis.flushdb()
-    occurred = datetime(2026, 6, 2, tzinfo=timezone.utc)
+    occurred = datetime(2026, 6, 2, tzinfo=UTC)
     fp = compute_fingerprint("manual", "sports", "FIFA test", occurred.date())
 
     assert await is_duplicate(fp, redis, db_session) is False
@@ -39,6 +39,6 @@ async def test_duplicate_fingerprint(db_session: AsyncSession) -> None:
 async def test_new_fingerprint_creates_row(db_session: AsyncSession) -> None:
     redis = get_redis()
     await redis.flushdb()
-    occurred = datetime(2026, 6, 3, tzinfo=timezone.utc)
+    occurred = datetime(2026, 6, 3, tzinfo=UTC)
     fp = compute_fingerprint("manual", "sports", "Unique", occurred.date())
     assert await is_duplicate(fp, redis, db_session) is False

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import ClassVar
 
 import httpx
 import structlog
@@ -12,20 +13,20 @@ logger = structlog.get_logger(__name__)
 
 
 class NewsMockSource:
-    _EVENTS = [
+    _EVENTS: ClassVar[list[str]] = [
         "Marvel film opens to $280M domestic — franchise record",
         "New steel tariff discussion — congressional hearing",
         "AI chip export controls — updated restrictions",
     ]
 
     async def fetch(self) -> list[RawEventDict]:
-        idx = datetime.now(timezone.utc).minute % len(self._EVENTS)
+        idx = datetime.now(UTC).minute % len(self._EVENTS)
         return [
             {
                 "source": "news_mock",
                 "event_type": "news",
                 "title": self._EVENTS[idx],
-                "occurred_at": datetime.now(timezone.utc),
+                "occurred_at": datetime.now(UTC),
                 "metadata": {"data_source": "mock"},
             }
         ]
@@ -61,7 +62,7 @@ class FinnhubNewsSource:
             headline = article.get("headline", "").strip()
             if not headline:
                 continue
-            published = datetime.fromtimestamp(article.get("datetime", 0), tz=timezone.utc)
+            published = datetime.fromtimestamp(article.get("datetime", 0), tz=UTC)
             related = article.get("related", "") or ""
             tickers = [t.strip().upper() for t in related.split(",") if t.strip()]
             events.append(

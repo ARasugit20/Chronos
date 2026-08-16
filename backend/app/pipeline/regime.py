@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from app.config import get_settings
@@ -59,7 +59,7 @@ def _is_august_seasonality(now: datetime | None = None) -> bool:
     settings = get_settings()
     if not settings.august_seasonality_enabled:
         return False
-    ts = now or datetime.now(timezone.utc)
+    ts = now or datetime.now(UTC)
     return ts.month == 8
 
 

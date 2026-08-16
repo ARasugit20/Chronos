@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import date, timedelta
+
 import httpx
 import structlog
-from datetime import date, timedelta
 
 from app.config import get_settings
 

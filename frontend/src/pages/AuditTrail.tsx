@@ -30,7 +30,7 @@ function buildTimeline(data: Awaited<ReturnType<typeof fetchAuditTrail>>): Timel
   if (data.outcome) {
     steps.push({
       title: "Outcome resolved",
-      detail: `Return ${(Number(data.outcome.realized_return_pct) * 100).toFixed(2)}% · Brier ${Number(data.outcome.brier_component).toFixed(3)} · ${data.outcome.hit_boolean ? "Hit" : "Miss"}`,
+      detail: `Outcome move ${(Number(data.outcome.realized_return_pct) * 100).toFixed(2)}% · Brier ${Number(data.outcome.brier_component).toFixed(3)} · ${data.outcome.hit_boolean ? "Hit" : "Miss"}`,
       timestamp: String(data.outcome.resolved_at),
     });
   }

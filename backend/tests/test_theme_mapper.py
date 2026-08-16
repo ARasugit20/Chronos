@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping
@@ -10,7 +10,7 @@ def _event(title: str) -> Event:
         source="sports_mock",
         event_type="sports",
         title=title,
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="theme-test",
     )

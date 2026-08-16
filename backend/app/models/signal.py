@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,5 +29,5 @@ class Signal(Base):
     match_method: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)
 
-    event: Mapped["Event"] = relationship(back_populates="signals")
-    recommendation: Mapped[Optional["Recommendation"]] = relationship(back_populates="signal", uselist=False)
+    event: Mapped[Event] = relationship(back_populates="signals")
+    recommendation: Mapped[Recommendation | None] = relationship(back_populates="signal", uselist=False)
