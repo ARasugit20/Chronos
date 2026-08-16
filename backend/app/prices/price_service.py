@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import random
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -30,7 +30,7 @@ class HistoricalPriceUnavailableError(RuntimeError):
 
 def _as_of_date(as_of: date | datetime | None) -> date:
     if as_of is None:
-        return date.today()
+        return datetime.now(UTC).date()
     if isinstance(as_of, datetime):
         return as_of.date()
     return as_of

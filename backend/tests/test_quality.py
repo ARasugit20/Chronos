@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
@@ -17,7 +17,7 @@ async def test_low_precision_suppresses(db_session: AsyncSession) -> None:
         source="manual",
         event_type="sports",
         title="quality test",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="quality-low",
     )
@@ -40,9 +40,9 @@ async def test_low_precision_suppresses(db_session: AsyncSession) -> None:
         rec = Recommendation(
             signal_id=signal.id,
             action="buy",
-            amount_usd=Decimal("100"),
+            amount_usd=Decimal(100),
             pct_cash=0.01,
-            expires_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(UTC),
             reason="test",
             status="resolved",
         )
@@ -51,9 +51,9 @@ async def test_low_precision_suppresses(db_session: AsyncSession) -> None:
         db_session.add(
             Outcome(
                 recommendation_id=rec.id,
-                resolved_at=datetime.now(timezone.utc),
-                price_at_signal=Decimal("100"),
-                price_at_expiry=Decimal("90"),
+                resolved_at=datetime.now(UTC),
+                price_at_signal=Decimal(100),
+                price_at_expiry=Decimal(90),
                 realized_return_pct=-0.1,
                 hit_boolean=False,
                 brier_component=0.4,

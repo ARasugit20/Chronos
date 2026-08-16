@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 
@@ -35,7 +35,7 @@ async def run_demo_seed() -> None:
                 source=source,
                 event_type=event_type,
                 title=title,
-                occurred_at=datetime.now(timezone.utc),
+                occurred_at=datetime.now(UTC),
                 metadata={"demo": True},
             )
             if dup or event is None:

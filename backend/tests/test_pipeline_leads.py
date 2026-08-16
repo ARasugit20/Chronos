@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping
 from app.services.pipeline_service import process_event_signals
-from app.models.event import Event
 
 
 @pytest.mark.asyncio
@@ -26,7 +26,7 @@ async def test_pipeline_persists_lead_fields(db_session: AsyncSession) -> None:
         source="news_mock",
         event_type="news",
         title="OPEC cuts crude oil supply amid geopolitical tension",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="lead-fields",
     )
@@ -79,7 +79,7 @@ async def test_clustered_headlines_merge_without_orphan_signal(db_session: Async
         source="news_mock",
         event_type="news",
         title=first_title,
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="cluster-first",
     )
@@ -92,7 +92,7 @@ async def test_clustered_headlines_merge_without_orphan_signal(db_session: Async
         source="news_mock",
         event_type="news",
         title=second_title,
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash="cluster-second",
     )
@@ -168,7 +168,7 @@ async def test_recommendations_api_exposes_lead_fields(client: AsyncClient, db_s
             "source": "manual",
             "event_type": "news",
             "title": "Crude oil price spikes on OPEC supply cut",
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
+            "occurred_at": datetime.now(UTC).isoformat(),
             "metadata": {},
         },
     )

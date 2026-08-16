@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from httpx import AsyncClient
@@ -15,7 +15,7 @@ async def test_signal_cursor_pagination(client: AsyncClient, db_session: AsyncSe
         source="manual",
         event_type="sports",
         title="pagination seed",
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json={},
         fingerprint_hash=str(uuid.uuid4()),
     )

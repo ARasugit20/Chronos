@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -92,7 +92,7 @@ async def find_cluster(
     window_hours: int,
     now: datetime | None = None,
 ) -> Recommendation | None:
-    ts = now or datetime.now(timezone.utc)
+    ts = now or datetime.now(UTC)
     cutoff = ts - timedelta(hours=window_hours)
     row = (
         await db.execute(
@@ -115,7 +115,7 @@ async def enforce_daily_cap(
     now: datetime | None = None,
 ) -> RankDecision:
     settings = get_settings()
-    ts = now or datetime.now(timezone.utc)
+    ts = now or datetime.now(UTC)
     start_of_day = ts.replace(hour=0, minute=0, second=0, microsecond=0)
 
     existing = (
@@ -143,9 +143,8 @@ async def enforce_daily_cap(
 def apply_regime_policy(candidate: LeadCandidate) -> LeadCandidate:
     """Adjust rank score for Aug-2026 priors without removing guards."""
     score = candidate.rank_score
-    if candidate.regime.primary == Regime.RANGE_ROTATION:
-        if candidate.theme_bucket in FAVORABLE_BUCKETS:
-            score *= 1.1
+    if candidate.regime.primary == Regime.RANGE_ROTATION and candidate.theme_bucket in FAVORABLE_BUCKETS:
+        score *= 1.1
     if candidate.theme_bucket == "ENERGY_SHOCK" and "oil_geo_shock" in candidate.regime.flags:
         score *= 1.15
     if candidate.theme_bucket == "AI_INFRA" and candidate.regime.primary == Regime.AI_INFRA_STRESS:

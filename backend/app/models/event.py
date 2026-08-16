@@ -22,4 +22,4 @@ class Event(Base):
     fingerprint_hash: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=func.now(), nullable=False)
 
-    signals: Mapped[list["Signal"]] = relationship(back_populates="event", cascade="all, delete-orphan")
+    signals: Mapped[list[Signal]] = relationship(back_populates="event", cascade="all, delete-orphan")

@@ -7,6 +7,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+**Paper trading mode is on by default** (`PAPER_TRADING_MODE=true`). Recommendations are labelled `paper_buy`, sized with Kelly caps for research only, and carry a non-advisory disclaimer — not live trading signals or financial advice.
+
 **Event-driven quant research agent** that ingests news/sports/macro events, maps them to ticker themes, scores probability, sizes positions with Kelly caps, and surfaces buy/skip recommendations with full audit provenance.
 
 Repository: [https://github.com/ARasugit20/Chronos](https://github.com/ARasugit20/Chronos)
@@ -191,7 +193,7 @@ Chronos promotes **paper-only research leads** (default `PAPER_TRADING_MODE=true
 | `expires_at` | Horizon for outcome resolution (shorter after sell-the-beat regimes) |
 | Audit id | Recommendation UUID — use `/api/v1/audit/{id}` for full provenance |
 
-**Research disclaimer:** These are research signals only, not financial advice. Profit-quality metrics on the dashboard require resolved outcomes and are not point-in-time replay proof of alpha.
+**Research disclaimer:** These are research signals only, not financial advice. Calibration metrics on the dashboard require resolved outcomes and are not point-in-time replay proof of edge.
 
 ---
 

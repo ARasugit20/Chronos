@@ -1,5 +1,6 @@
 import pytest
 
+from app.models.theme_mapping import ThemeMapping
 from app.pipeline.lead_ranker import (
     LeadCandidate,
     apply_regime_policy,
@@ -10,7 +11,6 @@ from app.pipeline.lead_ranker import (
 )
 from app.pipeline.regime import Regime, RegimeSnapshot
 from app.pipeline.theme_buckets import resolve_theme_bucket
-from app.models.theme_mapping import ThemeMapping
 
 
 def _candidate(**overrides) -> LeadCandidate:

@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import structlog
@@ -134,7 +134,7 @@ async def _recent_hits_for_ticker(db: AsyncSession, ticker: str, limit: int = 10
 
 async def process_event_signals(db: AsyncSession, event: Event) -> None:
     settings = get_settings()
-    as_of = datetime.now(timezone.utc)
+    as_of = datetime.now(UTC)
     mappings = (
         await db.execute(select(ThemeMapping).where(ThemeMapping.approved_by_human.is_(True)))
     ).scalars().all()
@@ -260,7 +260,7 @@ async def process_event_signals(db: AsyncSession, event: Event) -> None:
             if regime_snapshot.primary == Regime.EARNINGS_SELLTHEBEAT:
                 horizon_hours = settings.earnings_sellthebeat_horizon_hours
 
-            expires_at = datetime.now(timezone.utc) + timedelta(hours=horizon_hours)
+            expires_at = datetime.now(UTC) + timedelta(hours=horizon_hours)
             thesis = _build_thesis(
                 event=event,
                 ticker=ticker,
@@ -367,8 +367,9 @@ def _compose_skip_reason(existing: str | None, reason: str) -> str:
 
 
 async def _count_outcomes(db: AsyncSession) -> int:
-    from app.models.outcome import Outcome
     from sqlalchemy import func
+
+    from app.models.outcome import Outcome
 
     return (
         await db.execute(select(func.count()).select_from(Outcome))

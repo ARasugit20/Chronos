@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -39,12 +39,12 @@ class RulesScorer:
         as_of: datetime | None = None,
     ) -> float:
         score = theme.confidence_prior
-        reference = as_of or datetime.now(timezone.utc)
+        reference = as_of or datetime.now(UTC)
         if reference.tzinfo is None:
-            reference = reference.replace(tzinfo=timezone.utc)
+            reference = reference.replace(tzinfo=UTC)
         occurred = event.occurred_at
         if occurred.tzinfo is None:
-            occurred = occurred.replace(tzinfo=timezone.utc)
+            occurred = occurred.replace(tzinfo=UTC)
         if (reference - occurred).days <= 7:
             score += 0.03
         if event.source in HIGH_TRUST_SOURCES:

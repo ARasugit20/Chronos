@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -12,7 +12,7 @@ def observation(
     exit_price: float = 110.0,
     benchmark: float = 0.02,
 ) -> ReplayObservation:
-    signal_at = datetime(2026, 1, 2, 14, 30, tzinfo=timezone.utc)
+    signal_at = datetime(2026, 1, 2, 14, 30, tzinfo=UTC)
     return ReplayObservation(
         ticker=ticker,
         signal_at=signal_at,

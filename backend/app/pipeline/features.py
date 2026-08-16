@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import re
 import hashlib
 import json
+import re
 
 from app.models.event import Event
 from app.models.theme_mapping import ThemeMapping

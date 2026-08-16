@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -37,8 +37,8 @@ async def test_mock_price_is_deterministic_for_ticker_and_date() -> None:
 async def test_mock_price_differs_across_dates() -> None:
     with patch("app.prices.price_service.get_settings") as settings_mock:
         settings_mock.return_value.polygon_api_key = ""
-        entry = await get_price("AAPL", datetime(2026, 6, 1, tzinfo=timezone.utc))
-        exit_price = await get_price("AAPL", datetime(2026, 6, 4, tzinfo=timezone.utc))
+        entry = await get_price("AAPL", datetime(2026, 6, 1, tzinfo=UTC))
+        exit_price = await get_price("AAPL", datetime(2026, 6, 4, tzinfo=UTC))
     assert entry != exit_price
 
 

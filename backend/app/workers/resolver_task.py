@@ -1,5 +1,6 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 import structlog
 from celery import shared_task
 from sqlalchemy import select
@@ -16,13 +17,13 @@ logger = structlog.get_logger(__name__)
 
 def _as_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 async def resolve_expired() -> int:
     settings = get_settings()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     resolved_count = 0
     brier_total = 0.0
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -11,7 +11,7 @@ def _event(title: str, metadata: dict | None = None) -> Event:
         source="news_mock",
         event_type="news",
         title=title,
-        occurred_at=datetime(2026, 8, 8, tzinfo=timezone.utc),
+        occurred_at=datetime(2026, 8, 8, tzinfo=UTC),
         metadata_json=metadata or {},
         fingerprint_hash="regime-test",
     )
@@ -50,5 +50,5 @@ def test_range_rotation_from_config(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_august_seasonality_flag() -> None:
     tagger = RegimeTagger()
-    snapshot = tagger.tag(_event("Quiet trading day"), now=datetime(2026, 8, 15, tzinfo=timezone.utc))
+    snapshot = tagger.tag(_event("Quiet trading day"), now=datetime(2026, 8, 15, tzinfo=UTC))
     assert "august_seasonality" in snapshot.flags

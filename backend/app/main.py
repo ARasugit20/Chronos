@@ -9,21 +9,20 @@ from sqlalchemy import text
 from starlette.responses import Response
 
 from app.api import audit, auth, backtest, events, portfolio, recommendations, signals
-from app.database import SessionLocal
+from app.config import get_settings
+from app.database import SessionLocal, engine
+from app.logging_config import configure_logging
 from app.metrics import (
     ingest_stale_gauge,
     mock_news_mode_gauge,
     mock_price_mode_gauge,
     worker_heartbeat_gauge,
 )
-from app.services.monitoring import check_system_health
-from app.config import get_settings
-from app.database import engine
-from app.logging_config import configure_logging
 from app.middleware import RequestContextMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
-from app.ws import signal_ws
 from app.redis_client import close_redis, get_redis
+from app.services.monitoring import check_system_health
+from app.ws import signal_ws
 
 configure_logging()
 logger = structlog.get_logger(__name__)
@@ -116,8 +115,8 @@ def create_app() -> FastAPI:
                 mock_news_mode_gauge.set(1 if monitoring["mock_news_mode"] else 0)
                 if monitoring["alerts"]:
                     payload["status"] = "degraded"
-            except Exception:  # noqa: BLE001
-                pass
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("health.monitoring_failed", error=str(exc))
         return payload
 
     return app

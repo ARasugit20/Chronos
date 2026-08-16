@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.models.event import Event
 from app.pipeline.theme_mapper import match_themes
@@ -9,7 +9,7 @@ def _event(title: str, metadata: dict | None = None) -> Event:
         source="finnhub",
         event_type="news",
         title=title,
-        occurred_at=datetime.now(timezone.utc),
+        occurred_at=datetime.now(UTC),
         metadata_json=metadata or {},
         fingerprint_hash="entity-test",
     )
