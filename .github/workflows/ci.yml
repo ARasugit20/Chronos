@@ -95,7 +95,19 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://invest:invest_local@localhost:5432/invest_agent
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
-        run: bash scripts/run_ci_tests.sh tests/ --cov=app --cov-report=term --cov-fail-under=60 -q
+        run: bash scripts/run_ci_tests.sh tests/ --cov=app --cov-report=term --cov-report=xml --cov-fail-under=60 -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage.xml
+      - uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-chronos
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   e2e:
     needs: test

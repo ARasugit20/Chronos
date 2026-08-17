@@ -1,7 +1,7 @@
 # Chronos (invest-agent)
 
 [![CI](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml/badge.svg)](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7)](https://chronos-api.onrender.com/api/v1/health)
+[![Coverage](https://codecov.io/gh/ARasugit20/Chronos/graph/badge.svg)](https://codecov.io/gh/ARasugit20/Chronos)
 [![Dashboard](https://img.shields.io/badge/Dashboard-Frontend-blue)](https://chronos-frontend.onrender.com)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688.svg)](https://fastapi.tiangolo.com/)
