@@ -21,9 +21,14 @@ Repository: [https://github.com/ARasugit20/Chronos](https://github.com/ARasugit2
 |-----------|-------------------|
 | **Full-stack ownership** | FastAPI + Celery + PostgreSQL + Redis + React dashboard |
 | **ML-ready pipeline** | Rules scorer today, LightGBM + isotonic calibration stubs with outcome loop |
+| **Outcome evidence (mock track)** | [n=28](docs/outcomes.md), Brier **0.2167**, resolution accuracy **57.1%**, skip rate **20.0%** — mock-track calibration, not live P&L ([details](docs/outcomes.md)) |
 | **Risk controls** | Half-Kelly sizing, per-ticker and sector caps, signal suppression |
 | **Production patterns** | Docker Compose, Alembic migrations, Prometheus metrics, structlog JSON |
 | **Data integrity** | Redis + DB dedup, cascade FKs, audit trail API |
+
+![Calibration reliability on mock-track resolver outcomes](docs/assets/calibration_reliability.svg)
+
+*Figure: predicted vs observed hit rate by confidence bucket. Generated from committed resolver exports — mock track, not live P&L. Regenerate with `python scripts/generate_outcomes_doc.py`.*
 
 ---
 
@@ -212,6 +217,21 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned upgrades: JWT auth, embedding
 5. Mutating API endpoints require JWT (`POST /api/v1/auth/token`); read endpoints remain public
 6. Telegram adapter sends to single chat_id — multi-user requires subscription model
 7. Kelly sizing uses configurable odds (`KELLY_ODDS`) — replace with event-study-derived expectations for production research
+
+### Incident note: CI timezone boundary (Aug 2026)
+
+After merging clustered-headline dedup ([`cfbe5a0`](https://github.com/ARasugit20/Chronos/commit/cfbe5a0)), CI turned green on lint but failed ingest tests with:
+
+```text
+asyncpg.exceptions.DataError: invalid input for query argument $2:
+datetime.datetime(... (can't subtract offset-naive and offset-aware datetimes)
+```
+
+**Failed run:** [31966536913](https://github.com/ARasugit20/Chronos/actions/runs/31966536913) — blocked `test_pipeline_leads.py::test_clustered_headlines_merge_without_orphan_signal` and related ingest paths.
+
+**Fix:** [`8fdeb64`](https://github.com/ARasugit20/Chronos/commit/8fdeb64) pinned Ruff 0.16.3, applied lint/UTC cleanup, and introduced `utc_now_naive()` for DB datetime comparisons in `lead_ranker.py` and `pipeline_service.py` so cluster/daily-cap queries no longer pass timezone-aware timestamps into naive `created_at` columns.
+
+**Recovery run:** [31966788167](https://github.com/ARasugit20/Chronos/actions/runs/31966788167) — lint, type-check, test, coverage, e2e, and frontend all passed. Prometheus `/metrics` and structlog JSON remained the observability surface; no tracing stack was added.
 
 ---
 
