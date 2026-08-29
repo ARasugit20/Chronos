@@ -1,8 +1,7 @@
 # Chronos (invest-agent)
 
 [![CI](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml/badge.svg)](https://github.com/ARasugit20/Chronos/actions/workflows/ci.yml)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7)](https://chronos-api.onrender.com/api/v1/health)
-[![Dashboard](https://img.shields.io/badge/Dashboard-Frontend-blue)](https://chronos-frontend.onrender.com)
+[![Dashboard (static build)](https://img.shields.io/badge/Dashboard-static%20build-blue)](https://chronos-frontend.onrender.com)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -21,9 +20,16 @@ Repository: [https://github.com/ARasugit20/Chronos](https://github.com/ARasugit2
 |-----------|-------------------|
 | **Full-stack ownership** | FastAPI + Celery + PostgreSQL + Redis + React dashboard |
 | **ML-ready pipeline** | Rules scorer today, LightGBM + isotonic calibration stubs with outcome loop |
+| **Outcome evidence (mock track)** | [n=28](docs/outcomes.md) resolved of 35 decisions · Brier **0.2167** · resolution accuracy **57.1%** · skip/abstain **20.0%** — mock price track, measures calibration quality, not trading P&L ([details](docs/outcomes.md)) |
 | **Risk controls** | Half-Kelly sizing, per-ticker and sector caps, signal suppression |
 | **Production patterns** | Docker Compose, Alembic migrations, Prometheus metrics, structlog JSON |
 | **Data integrity** | Redis + DB dedup, cascade FKs, audit trail API |
+
+![Calibration reliability on mock-track resolver outcomes](docs/assets/calibration_reliability.png)
+
+*Figure: predicted vs observed hit rate by confidence bucket. Generated from committed resolver exports on the mock price track — calibration quality, not trading P&L. Regenerate with `python3 scripts/generate_outcomes_doc.py`.*
+
+> **Hosted demo status (Aug 2026):** `chronos-api.onrender.com` is currently suspended (503). The frontend URL serves a static build only. Use the local quickstart below (`make up`, `make migrate`, `make seed`) to run the full stack.
 
 ---
 
@@ -212,6 +218,8 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for planned upgrades: JWT auth, embedding
 5. Mutating API endpoints require JWT (`POST /api/v1/auth/token`); read endpoints remain public
 6. Telegram adapter sends to single chat_id — multi-user requires subscription model
 7. Kelly sizing uses configurable odds (`KELLY_ODDS`) — replace with event-study-derived expectations for production research
+
+Operational incidents and recovery notes: [docs/runbook.md](docs/runbook.md#incident-log).
 
 ---
 
