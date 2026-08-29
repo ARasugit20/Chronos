@@ -1,4 +1,4 @@
-.PHONY: up down migrate seed test test-ci check-live lint
+.PHONY: up down migrate seed seed-demo test-backend test-ci test-postgres test-frontend check-live lint-backend lint-frontend logs
 
 up:
 	docker compose -f infra/docker-compose.yml up --build -d

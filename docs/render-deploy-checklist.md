@@ -77,7 +77,9 @@ Open `https://chronos-frontend.onrender.com` and confirm:
 
 ## 6. README Badges
 
+The `chronos-api` and `chronos-frontend` hostnames in this repo are examples from the upstream Render blueprint. Replace them with your own service URLs after you deploy a fork.
+
 Once Render assigns the final service hostnames, update the README badges if they differ from:
 
-- `https://chronos-api.onrender.com/api/v1/health`
-- `https://chronos-frontend.onrender.com`
+- `https://<your-api>.onrender.com/api/v1/health`
+- `https://<your-frontend>.onrender.com`
